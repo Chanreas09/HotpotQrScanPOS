@@ -1195,7 +1195,8 @@
             orderHistory: [],
             currentOrder: null,
             mode: 'customer',
-            editingItemId: null
+            editingItemId: null,
+            lastOrderDate: new Date().toDateString()  // ← Add this line
         };
 
         function loadMenu() {
@@ -1224,29 +1225,52 @@
             }
         }
 
-        function loadState() {
-            try {
-                const saved = localStorage.getItem('hotpotOrderState');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    state.orderNumber = parsed.orderNumber || 0;
-                    state.orderHistory = parsed.orderHistory || [];
-                }
-            } catch (e) {
-                console.warn('Failed to load state:', e);
+function loadState() {
+    try {
+        const saved = localStorage.getItem('hotpotOrderState');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            
+            // Check if we need to reset the order number for a new day
+            const today = new Date().toDateString();
+            const lastOrderDate = parsed.lastOrderDate || '';
+            
+            if (lastOrderDate !== today) {
+                // New day! Reset order number to 0 (will become 1 on next order)
+                state.orderNumber = 0;
+                state.lastOrderDate = today;
+                console.log('📅 New day! Order number reset to 0');
+            } else {
+                state.orderNumber = parsed.orderNumber || 0;
+                state.lastOrderDate = parsed.lastOrderDate || today;
             }
+            
+            state.orderHistory = parsed.orderHistory || [];
+        } else {
+            // First time using the app
+            state.orderNumber = 0;
+            state.lastOrderDate = new Date().toDateString();
+            state.orderHistory = [];
         }
+    } catch (e) {
+        console.warn('Failed to load state:', e);
+        state.orderNumber = 0;
+        state.lastOrderDate = new Date().toDateString();
+        state.orderHistory = [];
+    }
+}
 
-        function saveState() {
-            try {
-                localStorage.setItem('hotpotOrderState', JSON.stringify({
-                    orderNumber: state.orderNumber,
-                    orderHistory: state.orderHistory
-                }));
-            } catch (e) {
-                console.warn('Failed to save state:', e);
-            }
-        }
+function saveState() {
+    try {
+        localStorage.setItem('hotpotOrderState', JSON.stringify({
+            orderNumber: state.orderNumber,
+            orderHistory: state.orderHistory,
+            lastOrderDate: state.lastOrderDate || new Date().toDateString()
+        }));
+    } catch (e) {
+        console.warn('Failed to save state:', e);
+    }
+}
 
         // ============================================
         // RENDER FUNCTIONS
@@ -1356,13 +1380,21 @@
         // ORDER FUNCTIONS
         // ============================================
 
-        function generateOrderNumber() {
-            state.orderNumber++;
-            const num = String(state.orderNumber).padStart(4, '0');
-            document.getElementById('orderNumber').textContent = num;
-            saveState();
-            return num;
-        }
+      function generateOrderNumber() {
+    // Check if we need to reset for new day
+    const today = new Date().toDateString();
+    if (state.lastOrderDate !== today) {
+        state.orderNumber = 0;
+        state.lastOrderDate = today;
+        console.log('📅 New day! Order number reset to 0');
+    }
+    
+    state.orderNumber++;
+    const num = String(state.orderNumber).padStart(4, '0');
+    document.getElementById('orderNumber').textContent = num;
+    saveState();
+    return num;
+}
 
         function toggleItem(element) {
             if (state.mode === 'admin') return;
@@ -1954,42 +1986,42 @@ function showReceipt(order) {
         // 🔧 IMPORTANT: Replace these with your actual bot token and chat ID
 const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
 const CHAT_ID = '-5362955848';
-        function confirmOrder() {
-            const order = state.currentOrder;
-            if (!order) {
-                showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error');
-                return;
-            }
+function confirmOrder() {
+    const order = state.currentOrder;
+    if (!order) {
+        showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error');
+        return;
+    }
 
-            const confirmBtn = document.querySelector('#receiptModal .btn-confirm');
-            if (confirmBtn) {
-                confirmBtn.textContent = '⏳ កំពុងផ្ញើ...';
-                confirmBtn.disabled = true;
-            }
+    const confirmBtn = document.querySelector('#receiptModal .btn-confirm');
+    if (confirmBtn) {
+        confirmBtn.textContent = '⏳ កំពុងផ្ញើ...';
+        confirmBtn.disabled = true;
+    }
 
-            // Format order for Telegram
-            const orderItems = order.items.map(item => 
-                `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`
-            ).join('\n');
+    // Format order for Telegram with BOLD formatting
+    const orderItems = order.items.map(item => 
+        `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`
+    ).join('\n');
 
-            const message = `🍲 **ការបញ្ជាទិញថ្មី!**
+    const message = `🍲 *ការបញ្ជាទិញថ្មី!*
 
-📋 **លេខបញ្ជាទិញ:** #${order.number}
-📦 **ប្រភេទ:** ${order.type}
-🕐 **ម៉ោង:** ${new Date(order.timestamp).toLocaleString('km-KH')}
+📋 *លេខបញ្ជាទិញ:* #${order.number}
+📦 *ប្រភេទ:* ${order.type}
+🕐 *ម៉ោង:* ${new Date(order.timestamp).toLocaleString('km-KH')}
 
-📝 **មុខម្ហូប:**
+📝 *មុខម្ហូប:*
 ${orderItems}
 
-💰 **សរុប:** ៛${order.total.toLocaleString()}
+💰 *សរុប:* ៛${order.total.toLocaleString()}
 
-${order.instructions ? `📌 **កំណត់ចំណាំ:** ${order.instructions}` : ''}
+${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructions}` : ''}
 
-👨‍🍳 **សូមរៀបចំម្ហូប!**`;
+👨‍🍳 *សូមរៀបចំម្ហូប!*`;
 
-            // Try to send via Telegram
-            sendToTelegram(message, confirmBtn);
-        }
+    // Try to send via Telegram
+    sendToTelegram(message, confirmBtn);
+}
 
         function sendToTelegram(message, confirmBtn) {
             // Method 1: Try direct first
