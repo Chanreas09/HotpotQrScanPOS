@@ -1014,11 +1014,11 @@
 <body>
 
     <div class="container" id="appContainer">
-        <!-- Admin Toggle -->
-        <div class="admin-toggle no-print">
-            <button class="active" id="customerMode" onclick="setMode('customer')">👤 អតិថិជន</button>
-            <button id="adminMode" onclick="setMode('admin')">🔧 អ្នកគ្រប់គ្រង</button>
-        </div>
+  <!-- Admin Toggle - Hidden, password protected -->
+<div class="admin-toggle no-print" id="adminToggle" style="display:none;">
+    <button class="active" id="customerMode" onclick="setMode('customer')">👤 អតិថិជន</button>
+    <button id="adminMode" onclick="setMode('admin')">🔧 អ្នកគ្រប់គ្រង</button>
+</div>
 
         <!-- Admin Banner -->
         <div class="admin-banner" id="adminBanner">🔧 របៀបអ្នកគ្រប់គ្រង - កែប្រែម៉ឺនុយ</div>
@@ -1093,7 +1093,13 @@
         <button class="btn-secondary" id="viewHistoryBtn">📜 ប្រវត្តិការបញ្ជាទិញ</button>
         <div id="status" class="status"></div>
     </div>
+<div id="status" class="status"></div>
 
+<!-- Hidden Admin Login Trigger - Tap 3 times to access -->
+<div id="adminLoginTrigger" style="height:30px;cursor:pointer;opacity:0.2;text-align:center;font-size:12px;color:#999;user-select:none;padding:10px 0;margin-top:10px;border-top:1px solid #eee;" onclick="triggerAdminLogin()">
+    ⋮ ⋮ ⋮
+</div>
+</div>
     <!-- Floating Action Buttons -->
     <div class="fab no-print">
         <button class="fab-btn secondary" onclick="clearAll()" title="លុបទាំងអស់">🗑️</button>
@@ -1954,7 +1960,51 @@ function showReceipt(order) {
                 document.getElementById('placeOrderBtn').click();
             }
         });
+// ============================================
+// ADMIN PASSWORD PROTECTION
+// ============================================
 
+// 🔑 Change this password to your own!
+const ADMIN_PASSWORD = '1369';
+
+let adminTriggerCount = 0;
+let adminTriggerTimer = null;
+
+function triggerAdminLogin() {
+    adminTriggerCount++;
+    
+    // Clear the timer if it exists
+    clearTimeout(adminTriggerTimer);
+    
+    // Reset after 3 seconds of no clicks
+    adminTriggerTimer = setTimeout(() => {
+        adminTriggerCount = 0;
+    }, 3000);
+    
+    // If 3 clicks detected, show password prompt
+    if (adminTriggerCount >= 3) {
+        adminTriggerCount = 0;
+        const password = prompt('🔐 បញ្ចូលពាក្យសម្ងាត់អ្នកគ្រប់គ្រង:');
+        
+        if (password === ADMIN_PASSWORD) {
+            const adminToggle = document.getElementById('adminToggle');
+            if (adminToggle.style.display === 'none') {
+                adminToggle.style.display = 'flex';
+                showStatus('🔧 របៀបអ្នកគ្រប់គ្រង បានបើក!', 'success');
+            } else {
+                adminToggle.style.display = 'none';
+                // If in admin mode, switch back to customer
+                if (state.mode === 'admin') {
+                    setMode('customer');
+                }
+                showStatus('👤 បានបិទរបៀបអ្នកគ្រប់គ្រង', 'info');
+            }
+        } else if (password !== null && password !== '') {
+            showStatus('❌ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ!', 'error');
+        }
+        // If password is null (cancel button), do nothing
+    }
+}
         // ============================================
         // INITIALIZATION
         // ============================================
