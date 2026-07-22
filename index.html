@@ -656,7 +656,31 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
         }
+        .btn-confirm {
+    width: 100%;
+    padding: 14px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    margin-top: 12px;
+}
 
+.btn-confirm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+}
+
+.btn-confirm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
         .btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -1089,18 +1113,18 @@
         </div>
     </div>
 
-    <!-- Receipt Modal -->
-    <div class="modal-overlay" id="receiptModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>🧾 បង្កាន់ដៃ</h2>
-                <button class="modal-close" onclick="closeModal('receiptModal')">✕</button>
-            </div>
-            <div id="receiptContent"></div>
-            <button class="btn-primary" onclick="printReceipt()" style="margin-top:12px;">🖨️ បោះពុម្ព</button>
+<!-- Receipt Modal -->
+<div class="modal-overlay" id="receiptModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>🧾 បង្កាន់ដៃ</h2>
+            <button class="modal-close" onclick="closeModal('receiptModal')">✕</button>
         </div>
+        <div id="receiptContent"></div>
+        <button class="btn-confirm" onclick="confirmOrder()" style="width:100%;padding:14px;background:var(--success);color:white;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit;margin-top:12px;">✅ យល់ព្រម</button>
+        <button class="btn-secondary" onclick="printReceipt()" style="margin-top:8px;">🖨️ បោះពុម្ព</button>
     </div>
-
+</div>
     <!-- Edit Item Modal -->
     <div class="modal-overlay" id="editModal">
         <div class="modal">
@@ -1731,49 +1755,51 @@
         // RECEIPT & HISTORY
         // ============================================
 
-        function showReceipt(order) {
-            const modal = document.getElementById('receiptModal');
-            const content = document.getElementById('receiptContent');
+function showReceipt(order) {
+    const modal = document.getElementById('receiptModal');
+    const content = document.getElementById('receiptContent');
 
-            const orderToShow = order || state.currentOrder;
-            if (!orderToShow) {
-                showStatus('មិនមានការបញ្ជាទិញដើម្បីបង្ហាញបង្កាន់ដៃ', 'error');
-                return;
-            }
+    const orderToShow = order || state.currentOrder;
+    if (!orderToShow) {
+        showStatus('មិនមានការបញ្ជាទិញដើម្បីបង្ហាញបង្កាន់ដៃ', 'error');
+        return;
+    }
 
-            const date = new Date(orderToShow.timestamp);
-            const itemsHtml = orderToShow.items.map(item => `
-                <div class="receipt-item">
-                    <span>${item.qty}× ${item.name}</span>
-                    <span>៛${(item.price * item.qty).toLocaleString()}</span>
+    const date = new Date(orderToShow.timestamp);
+    const itemsHtml = orderToShow.items.map(item => `
+        <div class="receipt-item">
+            <span>${item.qty}× ${item.name}</span>
+            <span>៛${(item.price * item.qty).toLocaleString()}</span>
+        </div>
+    `).join('');
+
+    content.innerHTML = `
+        <div class="receipt" id="printableReceipt">
+            <div class="receipt-header">
+                <h2>🍲 ហតផត & អាហារសម្រន់</h2>
+                <div style="font-size:14px;color:#666;">លេខបញ្ជាទិញ #${orderToShow.number}</div>
+                <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
+                <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
+            </div>
+            ${itemsHtml}
+            <div class="receipt-total">
+                <span>សរុប</span>
+                <span>៛${orderToShow.total.toLocaleString()}</span>
+            </div>
+            ${orderToShow.instructions ? `
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:12px;color:#666;">
+                    📝 កំណត់ចំណាំ: ${orderToShow.instructions}
                 </div>
-            `).join('');
+            ` : ''}
+            <div class="receipt-footer">
+                ✅ ចុច "យល់ព្រម" ដើម្បីផ្ញើទៅផ្ទះបាយ
+                <br>🖨️ ឬចុច "បោះពុម្ព" ដើម្បីបោះពុម្ពបង្កាន់ដៃ
+            </div>
+        </div>
+    `;
 
-            content.innerHTML = `
-                <div class="receipt" id="printableReceipt">
-                    <div class="receipt-header">
-                        <h2>🍲 ហតផត & អាហារសម្រន់</h2>
-                        <div style="font-size:14px;color:#666;">លេខបញ្ជាទិញ #${orderToShow.number}</div>
-                        <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
-                        <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
-                    </div>
-                    ${itemsHtml}
-                    <div class="receipt-total">
-                        <span>សរុប</span>
-                        <span>៛${orderToShow.total.toLocaleString()}</span>
-                    </div>
-                    ${orderToShow.instructions ? `
-                        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:12px;color:#666;">
-                            📝 កំណត់ចំណាំ: ${orderToShow.instructions}
-                        </div>
-                    ` : ''}
-                    <div class="receipt-footer">សូមអរគុណចំពោះការបញ្ជាទិញ! 🙏</div>
-                </div>
-            `;
-
-            modal.classList.add('active');
-        }
-
+    modal.classList.add('active');
+}
         function printReceipt() {
             const content = document.getElementById('printableReceipt');
             if (!content) {
@@ -1920,6 +1946,127 @@
         console.log('📦 ការបញ្ជាទិញ:', state.orderHistory.length);
         console.log('💡 ចុច Ctrl+Enter ដើម្បីដាក់ការបញ្ជាទិញ');
         console.log('🔧 ចុច "អ្នកគ្រប់គ្រង" ដើម្បីកែប្រែម៉ឺនុយ');
+
+                // ============================================
+        // TELEGRAM BOT INTEGRATION
+        // ============================================
+
+        // 🔧 IMPORTANT: Replace these with your actual bot token and chat ID
+const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
+const CHAT_ID = '-5362955848';
+        function confirmOrder() {
+            const order = state.currentOrder;
+            if (!order) {
+                showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error');
+                return;
+            }
+
+            const confirmBtn = document.querySelector('#receiptModal .btn-confirm');
+            if (confirmBtn) {
+                confirmBtn.textContent = '⏳ កំពុងផ្ញើ...';
+                confirmBtn.disabled = true;
+            }
+
+            // Format order for Telegram
+            const orderItems = order.items.map(item => 
+                `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`
+            ).join('\n');
+
+            const message = `🍲 **ការបញ្ជាទិញថ្មី!**
+
+📋 **លេខបញ្ជាទិញ:** #${order.number}
+📦 **ប្រភេទ:** ${order.type}
+🕐 **ម៉ោង:** ${new Date(order.timestamp).toLocaleString('km-KH')}
+
+📝 **មុខម្ហូប:**
+${orderItems}
+
+💰 **សរុប:** ៛${order.total.toLocaleString()}
+
+${order.instructions ? `📌 **កំណត់ចំណាំ:** ${order.instructions}` : ''}
+
+👨‍🍳 **សូមរៀបចំម្ហូប!**`;
+
+            // Try to send via Telegram
+            sendToTelegram(message, confirmBtn);
+        }
+
+        function sendToTelegram(message, confirmBtn) {
+            // Method 1: Try direct first
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    handleTelegramSuccess(confirmBtn);
+                } else {
+                    // Try with proxy
+                    sendViaProxy(message, confirmBtn);
+                }
+            })
+            .catch(() => {
+                // Try with proxy
+                sendViaProxy(message, confirmBtn);
+            });
+        }
+
+        function sendViaProxy(message, confirmBtn) {
+            // Method 2: Using CORS proxy (most reliable for GitHub Pages)
+            fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://chanreas09.github.io'
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    handleTelegramSuccess(confirmBtn);
+                } else {
+                    // Fallback to manual
+                    manualTelegramSend(message, confirmBtn);
+                }
+            })
+            .catch(() => {
+                // Final fallback: manual
+                manualTelegramSend(message, confirmBtn);
+            });
+        }
+
+        function manualTelegramSend(message, confirmBtn) {
+            // Method 3: Open Telegram with pre-filled message (manual send)
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
+            showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
+            closeModal('receiptModal');
+            if (confirmBtn) {
+                confirmBtn.textContent = '✅ យល់ព្រម';
+                confirmBtn.disabled = false;
+            }
+        }
+
+        function handleTelegramSuccess(confirmBtn) {
+            showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
+            closeModal('receiptModal');
+            if (confirmBtn) {
+                confirmBtn.textContent = '✅ យល់ព្រម';
+                confirmBtn.disabled = false;
+            }
+        }
     </script>
+
 </body>
 </html>
