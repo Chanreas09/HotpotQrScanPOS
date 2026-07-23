@@ -461,9 +461,8 @@
     <div class="modal">
         <div class="modal-header"><h2>🧾 បង្កាន់ដៃ</h2><button class="modal-close" onclick="closeModal('receiptModal')">✕</button></div>
         <div id="receiptContent"></div>
-        <button class="btn-confirm" onclick="confirmOrder()">✅ យល់ព្រម</button>
-        <button class="btn-secondary" onclick="printReceipt()" style="margin-top:8px;">🖨️ បោះពុម្ព</button>
-    </div>
+        <button class="btn-confirm" id="confirmOrderBtn" onclick="confirmOrder()">✅ យល់ព្រម</button>
+<!-- <button class="btn-secondary" onclick="printReceipt()" style="margin-top:8px;">🖨️ បោះពុម្ព</button> -->    </div>
 </div>
 
 <!-- Edit Item Modal -->
@@ -486,6 +485,7 @@
 <script>
 window._selectedOrderType = null;
 
+// Store the selected order type
 window.selectOrderType = function(element) {
     document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
     element.classList.add('selected');
@@ -495,6 +495,7 @@ window.selectOrderType = function(element) {
     console.log('✅ Order type selected:', window._selectedOrderType);
 };
 
+// Confirm and show the main app
 window.confirmOrderType = function() {
     if (!window._selectedOrderType) {
         alert('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!');
@@ -503,7 +504,14 @@ window.confirmOrderType = function() {
     document.getElementById('orderTypeOverlay').style.display = 'none';
     document.getElementById('mainContent').classList.remove('main-content-hidden');
     document.documentElement.dataset.orderType = window._selectedOrderType;
-    const typeDisplay = window._selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
+    
+    // Reset the order type selection for next time
+    window._selectedOrderType = null;
+    document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    if (confirmBtn) confirmBtn.classList.remove('active');
+    
+    const typeDisplay = document.documentElement.dataset.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
     const statusDiv = document.getElementById('status');
     if (statusDiv) {
         statusDiv.textContent = `✅ បានជ្រើសរើស: ${typeDisplay}`;
@@ -514,13 +522,56 @@ window.confirmOrderType = function() {
     console.log('✅ Order type confirmed');
 };
 
+// 🔥 NEW: Reset everything and show the order type popup again
+window.resetToOrderType = function() {
+    // Reset the order type selection
+    window._selectedOrderType = null;
+    document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    if (confirmBtn) confirmBtn.classList.remove('active');
+    
+    // Clear the stored order type
+    document.documentElement.dataset.orderType = '';
+    
+    // Hide the main content
+    document.getElementById('mainContent').classList.add('main-content-hidden');
+    
+    // Show the popup
+    document.getElementById('orderTypeOverlay').style.display = 'flex';
+    
+    // Reset all selected items
+    document.querySelectorAll('.menu-item.selected').forEach(item => item.classList.remove('selected'));
+    
+    // Clear the order summary
+    document.getElementById('summaryGroup').style.display = 'none';
+    document.getElementById('orderSummary').innerHTML = '';
+    document.getElementById('totalPrice').textContent = '0';
+    document.getElementById('itemCount').textContent = '0';
+    
+    // Clear instructions
+    document.getElementById('instructions').value = '';
+    
+    // Reset state
+    state.items = {};
+    state.currentOrderNumber = null;
+    state.orderType = 'Here';
+    
+    // Generate a fresh order number
+    setTimeout(() => {
+        if (typeof generateOrderNumber === 'function') {
+            generateOrderNumber();
+        }
+    }, 100);
+    
+    console.log('🔄 Reset to order type selection');
+};
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && document.getElementById('orderTypeOverlay').style.display !== 'none') {
         window.confirmOrderType();
     }
 });
 </script>
-
 <!-- ============================================
      MAIN APPLICATION
      ============================================ -->
@@ -1306,20 +1357,29 @@ document.addEventListener('keydown', function(e) {
         .catch(() => { manualTelegramSend(message, confirmBtn); });
     }
 
-    function manualTelegramSend(message, confirmBtn) {
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
-        showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
-        closeModal('receiptModal');
-        if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
-    }
+function manualTelegramSend(message, confirmBtn) {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
+    showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
+    closeModal('receiptModal');
+    if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
+    
+    // 🔥 RESET after manual send
+    setTimeout(() => {
+        window.resetToOrderType();
+    }, 1500);
+}
 
-    function handleTelegramSuccess(confirmBtn) {
-        showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
-        closeModal('receiptModal');
-        if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
-    }
-
+function handleTelegramSuccess(confirmBtn) {
+    showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
+    closeModal('receiptModal');
+    if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
+    
+    // 🔥 RESET after successful send
+    setTimeout(() => {
+        window.resetToOrderType();
+    }, 1500);
+}
     // ============================================
     // KEYBOARD SHORTCUTS
     // ============================================
