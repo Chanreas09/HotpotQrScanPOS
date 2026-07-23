@@ -1432,6 +1432,85 @@
         </div>
     </div>
 
+<!-- ============================================
+     CRITICAL FIX: Order Type functions MUST be global
+     and available BEFORE the module loads
+     ============================================ -->
+<script>
+// These functions are now in the GLOBAL scope (not inside a module)
+// They will be available immediately when the page loads
+
+// Global variable to store the selected order type
+window._selectedOrderType = null;
+
+// Global function for selecting order type
+window.selectOrderType = function(element) {
+    // Remove selected class from all options
+    document.querySelectorAll('.order-type-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    element.classList.add('selected');
+    
+    // Store the selected value
+    window._selectedOrderType = element.dataset.value;
+    
+    // Enable the confirm button
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    if (confirmBtn) {
+        confirmBtn.classList.add('active');
+    }
+    
+    console.log('✅ Order type selected (global):', window._selectedOrderType);
+};
+
+// Global function for confirming order type
+window.confirmOrderType = function() {
+    console.log('🔄 confirmOrderType called, _selectedOrderType:', window._selectedOrderType);
+    
+    if (!window._selectedOrderType) {
+        // Use a simple alert since the module may not be loaded yet
+        alert('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!');
+        return;
+    }
+    
+    // Hide the popup
+    document.getElementById('orderTypeOverlay').style.display = 'none';
+    
+    // Show the main content
+    document.getElementById('mainContent').classList.remove('main-content-hidden');
+    
+    // Store the selection in a data attribute for the module to read
+    document.documentElement.dataset.orderType = window._selectedOrderType;
+    
+    const typeDisplay = window._selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
+    
+    // Show a status message
+    const statusDiv = document.getElementById('status');
+    if (statusDiv) {
+        statusDiv.textContent = `✅ បានជ្រើសរើស: ${typeDisplay}`;
+        statusDiv.className = 'status success';
+        statusDiv.style.display = 'block';
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 3000);
+    }
+    
+    console.log('✅ Order type confirmed, showing main content');
+};
+
+// Also handle Enter key for the popup
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && document.getElementById('orderTypeOverlay').style.display !== 'none') {
+        window.confirmOrderType();
+    }
+});
+</script>
+
+<!-- ============================================
+     MAIN APPLICATION - Module
+     ============================================ -->
 <script type="module">
     // ============================================
     // DEFAULT MENU DATA (from your Excel)
@@ -1606,7 +1685,7 @@
                     ${category}
                     <span class="count">${itemsInCategory.length}</span>
                     <span class="admin-actions">
-                        <button class="btn-add-cat" onclick="deleteCategory('${category}')" style="background:var(--primary);">🗑️</button>
+                        <button class="btn-add-cat" onclick="window.deleteCategory('${category}')" style="background:var(--primary);">🗑️</button>
                     </span>
                 </h3>
                 <div class="menu-grid" data-category="${category}">
@@ -1616,14 +1695,14 @@
                             <div class="item-name">${item.name}</div>
                             <div class="item-price">៛${item.price.toLocaleString()}</div>
                             <div class="qty-controls">
-                                <button class="qty-btn" onclick="adjustQty(this, -1)">−</button>
+                                <button class="qty-btn" onclick="window.adjustQty(this, -1)">−</button>
                                 <span class="qty-value">1</span>
-                                <button class="qty-btn" onclick="adjustQty(this, 1)">+</button>
+                                <button class="qty-btn" onclick="window.adjustQty(this, 1)">+</button>
                             </div>
                             <span class="qty-badge">1</span>
                             <div class="admin-item-controls">
-                                <button class="btn-edit-item" onclick="editItem('${item.id}')">✏️</button>
-                                <button class="btn-delete-item" onclick="deleteItem('${item.id}')">✕</button>
+                                <button class="btn-edit-item" onclick="window.editItem('${item.id}')">✏️</button>
+                                <button class="btn-delete-item" onclick="window.deleteItem('${item.id}')">✕</button>
                             </div>
                         </div>
                     `).join('')}
@@ -1653,7 +1732,7 @@
         container.innerHTML = menuData.categories.map(cat => `
             <span class="category-tag">
                 ${cat}
-                <span class="remove-cat" onclick="deleteCategory('${cat}')">✕</span>
+                <span class="remove-cat" onclick="window.deleteCategory('${cat}')">✕</span>
             </span>
         `).join('');
     }
@@ -1809,7 +1888,7 @@
                     </div>
                     <div>
                         <span>៛${subtotal.toLocaleString()}</span>
-                        <button class="remove-btn" onclick="removeItem('${Object.keys(state.items).find(key => state.items[key] === item)}')">✕</button>
+                        <button class="remove-btn" onclick="window.removeItem('${Object.keys(state.items).find(key => state.items[key] === item)}')">✕</button>
                     </div>
                 </div>
             `;
@@ -1835,61 +1914,31 @@
     }
 
     // ============================================
-    // ORDER TYPE - GLOBAL EXPOSURE
+    // READ ORDER TYPE FROM GLOBAL
     // ============================================
 
-    let selectedOrderType = null;
-
-    // 🔥 EXPOSE to window so onclick works
-    window.selectOrderType = function(element) {
-        document.querySelectorAll('.order-type-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
-        
-        element.classList.add('selected');
-        selectedOrderType = element.dataset.value;
-        
-        const confirmBtn = document.getElementById('confirmOrderTypeBtn');
-        confirmBtn.classList.add('active');
-        
-        console.log('✅ Order type selected:', selectedOrderType);
-    };
-
-    window.confirmOrderType = function() {
-        console.log('🔄 confirmOrderType called, selectedOrderType:', selectedOrderType);
-        
-        if (!selectedOrderType) {
-            showStatus('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!', 'error');
-            return;
+    // Read the order type from the data attribute set by the global script
+    function getOrderTypeFromGlobal() {
+        const orderType = document.documentElement.dataset.orderType;
+        if (orderType) {
+            state.orderType = orderType;
+            console.log('📦 Order type loaded from global:', state.orderType);
+        } else {
+            console.warn('⚠️ No order type found, using default: Here');
+            state.orderType = 'Here';
         }
-        
-        state.orderType = selectedOrderType;
-        console.log('✅ state.orderType set to:', state.orderType);
-        
-        document.querySelectorAll('.option-item').forEach(item => {
-            const radio = item.querySelector('input');
-            if (radio && radio.value === selectedOrderType) {
-                item.classList.add('active');
-                radio.checked = true;
-            } else if (radio) {
-                item.classList.remove('active');
-            }
-        });
-        
-        document.getElementById('orderTypeOverlay').style.display = 'none';
-        document.getElementById('mainContent').classList.remove('main-content-hidden');
-        
-        saveState();
-        
-        const typeDisplay = selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
-        showStatus(`✅ បានជ្រើសរើស: ${typeDisplay}`, 'success');
-    };
+        return state.orderType;
+    }
 
     // ============================================
     // PLACE ORDER
     // ============================================
 
     document.getElementById('placeOrderBtn').addEventListener('click', async function() {
+        // Get the order type from the global data attribute
+        const orderType = document.documentElement.dataset.orderType || 'Here';
+        state.orderType = orderType;
+        
         console.log('📦 Order button clicked, state.orderType:', state.orderType);
 
         if (state.mode === 'admin') {
@@ -1934,7 +1983,7 @@
         showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
         
         setTimeout(() => {
-            showReceipt(order);
+            window.showReceipt(order);
         }, 500);
 
         setTimeout(() => {
@@ -2260,7 +2309,7 @@
             `;
         } else {
             list.innerHTML = state.orderHistory.slice().reverse().map(order => `
-                <div class="history-item" onclick="showReceiptFromHistory('${order.number}')">
+                <div class="history-item" onclick="window.showReceiptFromHistory('${order.number}')">
                     <div>
                         <span class="h-order">#${order.number}</span>
                         <span class="h-total">៛${order.total.toLocaleString()}</span>
@@ -2282,7 +2331,7 @@
         if (order) {
             state.currentOrder = order;
             closeModal('historyModal');
-            setTimeout(() => showReceipt(order), 300);
+            setTimeout(() => window.showReceipt(order), 300);
         }
     };
 
@@ -2290,7 +2339,7 @@
         if (confirm('លុបប្រវត្តិការបញ្ជាទិញទាំងអស់?')) {
             state.orderHistory = [];
             saveState();
-            showHistory();
+            window.showHistory();
             showStatus('បានលុបប្រវត្តិ', 'info');
         }
     };
@@ -2485,16 +2534,15 @@ ${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructi
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             document.getElementById('placeOrderBtn').click();
         }
-        if (e.key === 'Enter' && document.getElementById('orderTypeOverlay').style.display !== 'none') {
-            window.confirmOrderType();
-        }
     });
 
     // ============================================
     // INITIALIZATION
     // ============================================
 
-    document.getElementById('mainContent').classList.add('main-content-hidden');
+    // The popup is visible by default (main content hidden in HTML)
+    // The global script handles the popup interaction
+    
     loadMenu();
     loadState();
 
@@ -2511,6 +2559,9 @@ ${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructi
             const fallback = `${time}-${random}`;
             document.getElementById('orderNumber').textContent = fallback;
         }
+        
+        // Load the order type from the global data attribute
+        getOrderTypeFromGlobal();
     })();
 
     renderMenu();
@@ -2522,6 +2573,7 @@ ${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructi
     console.log('📦 ការបញ្ជាទិញ:', state.orderHistory.length);
     console.log('💡 ចុច Ctrl+Enter ដើម្បីដាក់ការបញ្ជាទិញ');
     console.log('🔧 ចុច "អ្នកគ្រប់គ្រង" ដើម្បីកែប្រែម៉ឺនុយ');
-</script></body>
-</html>
+</script>
 
+</body>
+</html>
