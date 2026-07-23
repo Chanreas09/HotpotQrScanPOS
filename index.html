@@ -1433,1052 +1433,959 @@
     </div>
 
 <script type="module">
+    // ============================================
+    // DEFAULT MENU DATA (from your Excel)
+    // ============================================
 
-        // ============================================
-        // DEFAULT MENU DATA (from your Excel)
-        // ============================================
+    const DEFAULT_MENU = {
+        categories: ['ហតផត', 'គ្រឿងថែម', 'ភេសជ្ជៈ', 'អាហារសម្រន់'],
+        items: [
+            // Hotpot
+            { id: 'noodle-small', name: 'មីចិន តូច', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'noodle-large', name: 'មីចិន ធំ', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'soy-noodle', name: 'មីសួរ', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'khmer-noodle', name: 'មីខ្មែរ', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            // Add-ons
+            { id: 'chicken', name: 'មាន់ខ្មៅ', price: 2000, category: 'គ្រឿងថែម', emoji: '🍗' },
+            { id: 'meatball', name: 'ប្រហិតនំប៉ាវឆ្នូត', price: 2000, category: 'គ្រឿងថែម', emoji: '🧆' },
+            { id: 'tofu', name: 'តៅហ៊ូជ្រុងតូច', price: 2000, category: 'គ្រឿងថែម', emoji: '🫘' },
+            { id: 'hotdog', name: 'ហតដកតូច', price: 2000, category: 'គ្រឿងថែម', emoji: '🌭' },
+            // Drinks
+            { id: 'water', name: 'ទឹកសុទ្ធិ តូច', price: 1000, category: 'ភេសជ្ជៈ', emoji: '💧' },
+            { id: 'coke', name: 'កូកា កែវ', price: 1000, category: 'ភេសជ្ជៈ', emoji: '🥤' },
+            // Snacks
+            { id: 'fried-5', name: 'គាវ ៥ គ្រាប់', price: 2500, category: 'អាហារសម្រន់', emoji: '🍤' },
+            { id: 'fried-10', name: 'គាវ ១០ គ្រាប់', price: 5000, category: 'អាហារសម្រន់', emoji: '🍤' },
+            { id: 'tofu-grilled-5', name: 'តៅហ៊ូអាំង ៥', price: 5000, category: 'អាហារសម្រន់', emoji: '🫘' },
+            { id: 'tofu-grilled-10', name: 'តៅហ៊ូអាំង ១០', price: 10000, category: 'អាហារសម្រន់', emoji: '🫘' }
+        ]
+    };
 
-        const DEFAULT_MENU = {
-            categories: ['ហតផត', 'គ្រឿងថែម', 'ភេសជ្ជៈ', 'អាហារសម្រន់'],
-            items: [
-                // Hotpot
-                { id: 'noodle-small', name: 'មីចិន តូច', price: 8000, category: 'ហតផត', emoji: '🍜' },
-                { id: 'noodle-large', name: 'មីចិន ធំ', price: 8000, category: 'ហតផត', emoji: '🍜' },
-                { id: 'soy-noodle', name: 'មីសួរ', price: 8000, category: 'ហតផត', emoji: '🍜' },
-                { id: 'khmer-noodle', name: 'មីខ្មែរ', price: 8000, category: 'ហតផត', emoji: '🍜' },
-                // Add-ons
-                { id: 'chicken', name: 'មាន់ខ្មៅ', price: 2000, category: 'គ្រឿងថែម', emoji: '🍗' },
-                { id: 'meatball', name: 'ប្រហិតនំប៉ាវឆ្នូត', price: 2000, category: 'គ្រឿងថែម', emoji: '🧆' },
-                { id: 'tofu', name: 'តៅហ៊ូជ្រុងតូច', price: 2000, category: 'គ្រឿងថែម', emoji: '🫘' },
-                { id: 'hotdog', name: 'ហតដកតូច', price: 2000, category: 'គ្រឿងថែម', emoji: '🌭' },
-                // Drinks
-                { id: 'water', name: 'ទឹកសុទ្ធិ តូច', price: 1000, category: 'ភេសជ្ជៈ', emoji: '💧' },
-                { id: 'coke', name: 'កូកា កែវ', price: 1000, category: 'ភេសជ្ជៈ', emoji: '🥤' },
-                // Snacks
-                { id: 'fried-5', name: 'គាវ ៥ គ្រាប់', price: 2500, category: 'អាហារសម្រន់', emoji: '🍤' },
-                { id: 'fried-10', name: 'គាវ ១០ គ្រាប់', price: 5000, category: 'អាហារសម្រន់', emoji: '🍤' },
-                { id: 'tofu-grilled-5', name: 'តៅហ៊ូអាំង ៥', price: 5000, category: 'អាហារសម្រន់', emoji: '🫘' },
-                { id: 'tofu-grilled-10', name: 'តៅហ៊ូអាំង ១០', price: 10000, category: 'អាហារសម្រន់', emoji: '🫘' }
-            ]
-        };
+    // ============================================
+    // DATA MANAGEMENT
+    // ============================================
 
-// ============================================
-// DATA MANAGEMENT
-// ============================================
+    // 🔥 YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyAumwh2Z-rPKZU-t9qtTLWEkxuU_9hRKBg",
+        authDomain: "hotpot-pos-qr.firebaseapp.com",
+        databaseURL: "https://hotpot-pos-qr-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "hotpot-pos-qr",
+        storageBucket: "hotpot-pos-qr.firebasestorage.app",
+        messagingSenderId: "12794193112",
+        appId: "1:12794193112:web:d7440ae1472217591163ad"
+    };
 
-// 🔥 YOUR FIREBASE CONFIG
-const firebaseConfig = {
-    apiKey: "AIzaSyAumwh2Z-rPKZU-t9qtTLWEkxuU_9hRKBg",
-    authDomain: "hotpot-pos-qr.firebaseapp.com",
-    databaseURL: "https://hotpot-pos-qr-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "hotpot-pos-qr",
-    storageBucket: "hotpot-pos-qr.firebasestorage.app",
-    messagingSenderId: "12794193112",
-    appId: "1:12794193112:web:d7440ae1472217591163ad"
-};
+    // Import Firebase
+    import { initializeApp } from "firebase/app";
+    import { getDatabase, ref, get, set, update, runTransaction } from "firebase/database";
 
-// Import Firebase
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, set, update, runTransaction } from "firebase/database";
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+    let menuData = { categories: [], items: [] };
+    let state = {
+        orderNumber: 0,
+        currentOrderNumber: null,
+        orderType: 'Here',
+        items: {},
+        orderHistory: [],
+        currentOrder: null,
+        mode: 'customer',
+        editingItemId: null,
+        lastOrderDate: new Date().toDateString()
+    };
 
-let menuData = { categories: [], items: [] };
-let state = {
-    orderNumber: 0,
-    currentOrderNumber: null,
-    orderType: 'Here',
-    items: {},
-    orderHistory: [],
-    currentOrder: null,
-    mode: 'customer',
-    editingItemId: null,
-    lastOrderDate: new Date().toDateString()
-};
+    // ============================================
+    // CORE FUNCTIONS
+    // ============================================
 
-function loadMenu() {
-            try {
-                const saved = localStorage.getItem('hotpotMenuData');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    menuData = parsed;
-                    if (!menuData.categories) menuData.categories = DEFAULT_MENU.categories;
-                    if (!menuData.items) menuData.items = [];
-                    return true;
+    function loadMenu() {
+        try {
+            const saved = localStorage.getItem('hotpotMenuData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                menuData = parsed;
+                if (!menuData.categories) menuData.categories = DEFAULT_MENU.categories;
+                if (!menuData.items) menuData.items = [];
+                return true;
+            }
+        } catch (e) {
+            console.warn('Failed to load menu:', e);
+        }
+        menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
+        saveMenu();
+        return false;
+    }
+
+    function saveMenu() {
+        try {
+            localStorage.setItem('hotpotMenuData', JSON.stringify(menuData));
+        } catch (e) {
+            console.warn('Failed to save menu:', e);
+        }
+    }
+
+    function loadState() {
+        try {
+            const saved = localStorage.getItem('hotpotOrderState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const today = new Date().toDateString();
+                const lastOrderDate = parsed.lastOrderDate || '';
+                
+                if (lastOrderDate !== today) {
+                    state.orderNumber = 0;
+                    state.lastOrderDate = today;
+                    state.currentOrderNumber = null;
+                    console.log('📅 New day! Order number reset to 0');
+                } else {
+                    state.orderNumber = parsed.orderNumber || 0;
+                    state.lastOrderDate = parsed.lastOrderDate || today;
+                    state.currentOrderNumber = parsed.currentOrderNumber || null;
                 }
-            } catch (e) {
-                console.warn('Failed to load menu:', e);
-            }
-            menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
-            saveMenu();
-            return false;
-        }
-
-        function saveMenu() {
-            try {
-                localStorage.setItem('hotpotMenuData', JSON.stringify(menuData));
-            } catch (e) {
-                console.warn('Failed to save menu:', e);
-            }
-        }
-
-function loadState() {
-    try {
-        const saved = localStorage.getItem('hotpotOrderState');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            
-            // Check if we need to reset the order number for a new day
-            const today = new Date().toDateString();
-            const lastOrderDate = parsed.lastOrderDate || '';
-            
-            if (lastOrderDate !== today) {
-                // New day! Reset order number to 0 (will become 1 on next order)
-                state.orderNumber = 0;
-                state.lastOrderDate = today;
-                state.currentOrderNumber = null;  // Clear old order number
-                console.log('📅 New day! Order number reset to 0');
+                state.orderHistory = parsed.orderHistory || [];
             } else {
-                state.orderNumber = parsed.orderNumber || 0;
-                state.lastOrderDate = parsed.lastOrderDate || today;
-                state.currentOrderNumber = parsed.currentOrderNumber || null;  // Load saved number
+                state.orderNumber = 0;
+                state.lastOrderDate = new Date().toDateString();
+                state.orderHistory = [];
+                state.currentOrderNumber = null;
             }
-            
-            state.orderHistory = parsed.orderHistory || [];
-        } else {
-            // First time using the app
+        } catch (e) {
+            console.warn('Failed to load state:', e);
             state.orderNumber = 0;
             state.lastOrderDate = new Date().toDateString();
             state.orderHistory = [];
             state.currentOrderNumber = null;
         }
-    } catch (e) {
-        console.warn('Failed to load state:', e);
-        state.orderNumber = 0;
-        state.lastOrderDate = new Date().toDateString();
-        state.orderHistory = [];
-        state.currentOrderNumber = null;
     }
-}
 
-function saveState() {
-    try {
-        localStorage.setItem('hotpotOrderState', JSON.stringify({
-            orderNumber: state.orderNumber,
-            currentOrderNumber: state.currentOrderNumber,  // ADD THIS LINE
-            orderHistory: state.orderHistory,
-            lastOrderDate: state.lastOrderDate || new Date().toDateString()
-        }));
-    } catch (e) {
-        console.warn('Failed to save state:', e);
+    function saveState() {
+        try {
+            localStorage.setItem('hotpotOrderState', JSON.stringify({
+                orderNumber: state.orderNumber,
+                currentOrderNumber: state.currentOrderNumber,
+                orderHistory: state.orderHistory,
+                lastOrderDate: state.lastOrderDate || new Date().toDateString()
+            }));
+        } catch (e) {
+            console.warn('Failed to save state:', e);
+        }
     }
-}
 
-        // ============================================
-        // RENDER FUNCTIONS
-        // ============================================
+    // ============================================
+    // RENDER FUNCTIONS
+    // ============================================
 
-        function renderMenu() {
-            const container = document.getElementById('menuContainer');
-            container.innerHTML = '';
+    function renderMenu() {
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = '';
 
-            if (menuData.items.length === 0) {
-                container.innerHTML = `
-                    <div class="option-group">
-                        <div class="empty-state">
-                            <div class="empty-icon">📭</div>
-                            <p>ម៉ឺនុយទទេ</p>
-                            <p style="font-size:13px;color:#999;">សូមត្រឡប់មកមើលក្រោយ</p>
-                        </div>
+        if (menuData.items.length === 0) {
+            container.innerHTML = `
+                <div class="option-group">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>ម៉ឺនុយទទេ</p>
+                        <p style="font-size:13px;color:#999;">សូមត្រឡប់មកមើលក្រោយ</p>
                     </div>
-                `;
-                return;
-            }
+                </div>
+            `;
+            return;
+        }
 
-            menuData.categories.forEach(category => {
-                const itemsInCategory = menuData.items.filter(item => item.category === category);
-                if (itemsInCategory.length === 0) return;
+        menuData.categories.forEach(category => {
+            const itemsInCategory = menuData.items.filter(item => item.category === category);
+            if (itemsInCategory.length === 0) return;
 
-                const group = document.createElement('div');
-                group.className = 'option-group';
-                group.innerHTML = `
-                    <h3>
-                        ${category}
-                        <span class="count">${itemsInCategory.length}</span>
-                        <span class="admin-actions">
-                            <button class="btn-add-cat" onclick="deleteCategory('${category}')" style="background:var(--primary);">🗑️</button>
-                        </span>
-                    </h3>
-                    <div class="menu-grid" data-category="${category}">
-                        ${itemsInCategory.map(item => `
-                            <div class="menu-item" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}" data-category="${item.category}">
-                                <span class="item-emoji">${item.emoji || '🍽️'}</span>
-                                <div class="item-name">${item.name}</div>
-                                <div class="item-price">៛${item.price.toLocaleString()}</div>
-                                <div class="qty-controls">
-                                    <button class="qty-btn" onclick="adjustQty(this, -1)">−</button>
-                                    <span class="qty-value">1</span>
-                                    <button class="qty-btn" onclick="adjustQty(this, 1)">+</button>
-                                </div>
-                                <span class="qty-badge">1</span>
-                                <div class="admin-item-controls">
-                                    <button class="btn-edit-item" onclick="editItem('${item.id}')">✏️</button>
-                                    <button class="btn-delete-item" onclick="deleteItem('${item.id}')">✕</button>
-                                </div>
+            const group = document.createElement('div');
+            group.className = 'option-group';
+            group.innerHTML = `
+                <h3>
+                    ${category}
+                    <span class="count">${itemsInCategory.length}</span>
+                    <span class="admin-actions">
+                        <button class="btn-add-cat" onclick="deleteCategory('${category}')" style="background:var(--primary);">🗑️</button>
+                    </span>
+                </h3>
+                <div class="menu-grid" data-category="${category}">
+                    ${itemsInCategory.map(item => `
+                        <div class="menu-item" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}" data-category="${item.category}">
+                            <span class="item-emoji">${item.emoji || '🍽️'}</span>
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">៛${item.price.toLocaleString()}</div>
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="adjustQty(this, -1)">−</button>
+                                <span class="qty-value">1</span>
+                                <button class="qty-btn" onclick="adjustQty(this, 1)">+</button>
                             </div>
-                        `).join('')}
-                    </div>
-                `;
-                container.appendChild(group);
-            });
-
-            // Add click handlers
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    if (e.target.closest('.admin-item-controls') || e.target.closest('.qty-btn')) return;
-                    if (state.mode === 'admin') return;
-                    toggleItem(this);
-                });
-            });
-
-            updateCategorySelects();
-            renderCategoryTags();
-        }
-
-        function renderCategoryTags() {
-            const container = document.getElementById('categoryTags');
-            if (menuData.categories.length === 0) {
-                container.innerHTML = '<span style="color:#999;font-size:14px;">មិនទាន់មានប្រភេទទេ។ បន្ថែមខាងក្រោម។</span>';
-                return;
-            }
-            container.innerHTML = menuData.categories.map(cat => `
-                <span class="category-tag">
-                    ${cat}
-                    <span class="remove-cat" onclick="deleteCategory('${cat}')">✕</span>
-                </span>
-            `).join('');
-        }
-
-        function updateCategorySelects() {
-            const selects = ['adminCategorySelect', 'editItemCategory'];
-            selects.forEach(id => {
-                const select = document.getElementById(id);
-                if (!select) return;
-                const currentVal = select.value;
-                select.innerHTML = '<option value="">ជ្រើសរើសប្រភេទ</option>';
-                menuData.categories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    select.appendChild(option);
-                });
-                if (currentVal && menuData.categories.includes(currentVal)) {
-                    select.value = currentVal;
-                }
-            });
-        }
-
-        // ============================================
-        // ORDER FUNCTIONS
-        // ============================================
-async function generateOrderNumber() {
-    // Check if we already have a saved order number
-    if (state.currentOrderNumber) {
-        document.getElementById('orderNumber').textContent = state.currentOrderNumber;
-        return state.currentOrderNumber;
-    }
-    
-    try {
-        const today = new Date().toDateString();
-        const counterRef = ref(db, `counters/${today}`);
-        
-        // 🔥 Use transaction for safe increment across multiple devices
-        const result = await runTransaction(counterRef, (currentData) => {
-            if (currentData === null) {
-                return 1;
-            }
-            return currentData + 1;
-        });
-        
-        if (!result.committed) {
-            throw new Error('Transaction failed');
-        }
-        
-        const counter = result.snapshot.val() || 1;
-        const orderNumber = String(counter).padStart(3, '0');
-        
-        state.currentOrderNumber = orderNumber;
-        document.getElementById('orderNumber').textContent = orderNumber;
-        saveState();
-        
-        console.log(`📋 Order #${orderNumber} (Day ${today})`);
-        return orderNumber;
-        
-    } catch (error) {
-        console.error('❌ Firebase error:', error);
-        showStatus('⚠️ មិនអាចបង្កើតលេខបញ្ជាទិញ, សូមពិនិត្យ internet', 'error');
-        
-        // Fallback: Use local timestamp
-        const now = new Date();
-        const time = String(now.getHours()).padStart(2, '0') + 
-                     String(now.getMinutes()).padStart(2, '0') +
-                     String(now.getSeconds()).padStart(2, '0');
-        const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-        const fallbackNumber = `${time}-${random}`;
-        
-        document.getElementById('orderNumber').textContent = fallbackNumber;
-        return fallbackNumber;
-    }
-}
-
-function toggleItem(element) {
-            if (state.mode === 'admin') return;
-            const id = element.dataset.id;
-
-            if (element.classList.contains('selected')) {
-                element.classList.remove('selected');
-                delete state.items[id];
-            } else {
-                element.classList.add('selected');
-                state.items[id] = {
-                    name: element.dataset.name,
-                    price: parseFloat(element.dataset.price),
-                    category: element.dataset.category,
-                    qty: 1
-                };
-                updateQtyDisplay(element, 1);
-            }
-
-            updateSummary();
-            saveState();
-        }
-
-        function adjustQty(btn, delta) {
-            if (state.mode === 'admin') return;
-            const item = btn.closest('.menu-item');
-            const id = item.dataset.id;
-
-            if (!state.items[id]) return;
-
-            let newQty = state.items[id].qty + delta;
-            if (newQty < 1) {
-                item.classList.remove('selected');
-                delete state.items[id];
-                updateSummary();
-                saveState();
-                return;
-            }
-
-            state.items[id].qty = newQty;
-            updateQtyDisplay(item, newQty);
-            updateSummary();
-            saveState();
-        }
-
-        function updateQtyDisplay(item, qty) {
-            const badge = item.querySelector('.qty-badge');
-            const value = item.querySelector('.qty-value');
-            if (badge) badge.textContent = qty;
-            if (value) value.textContent = qty;
-        }
-
-        function updateSummary() {
-            const summaryGroup = document.getElementById('summaryGroup');
-            const summaryDiv = document.getElementById('orderSummary');
-            const totalSpan = document.getElementById('totalPrice');
-            const itemCountSpan = document.getElementById('itemCount');
-
-            const items = Object.values(state.items);
-
-            if (items.length === 0) {
-                summaryGroup.style.display = 'none';
-                return;
-            }
-
-            summaryGroup.style.display = 'block';
-
-            let html = '';
-            let total = 0;
-            let totalItems = 0;
-
-            items.forEach(item => {
-                const subtotal = item.price * item.qty;
-                total += subtotal;
-                totalItems += item.qty;
-
-                html += `
-                    <div class="summary-item">
-                        <div class="item-info">
-                            <span class="item-qty">${item.qty}×</span>
-                            <span>${item.name}</span>
+                            <span class="qty-badge">1</span>
+                            <div class="admin-item-controls">
+                                <button class="btn-edit-item" onclick="editItem('${item.id}')">✏️</button>
+                                <button class="btn-delete-item" onclick="deleteItem('${item.id}')">✕</button>
+                            </div>
                         </div>
-                        <div>
-                            <span>៛${subtotal.toLocaleString()}</span>
-                            <button class="remove-btn" onclick="removeItem('${Object.keys(state.items).find(key => state.items[key] === item)}')">✕</button>
-                        </div>
-                    </div>
-                `;
-            });
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(group);
+        });
 
-            summaryDiv.innerHTML = html;
-            totalSpan.textContent = total.toLocaleString();
-            itemCountSpan.textContent = totalItems;
-        }
-
-        function removeItem(id) {
-            if (!confirm(`លុប "${state.items[id].name}" ចេញពីការបញ្ជាទិញ?`)) return;
-
-            const menuItem = document.querySelector(`.menu-item[data-id="${id}"]`);
-            if (menuItem) {
-                menuItem.classList.remove('selected');
-            }
-
-            delete state.items[id];
-            updateSummary();
-            saveState();
-            showStatus('បានលុបមុខម្ហូប', 'info');
-        }
-
-        // ============================================
-        // ORDER TYPE
-        // ============================================
-
-        document.querySelectorAll('.option-item').forEach(item => {
-            item.addEventListener('click', function() {
-                document.querySelectorAll('.option-item').forEach(el => el.classList.remove('active'));
-                this.classList.add('active');
-                const radio = this.querySelector('input');
-                if (radio) {
-                    radio.checked = true;
-                    state.orderType = radio.value;
-                }
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-item-controls') || e.target.closest('.qty-btn')) return;
+                if (state.mode === 'admin') return;
+                toggleItem(this);
             });
         });
 
-        // ============================================
-        // PLACE ORDER
-        // ============================================
+        updateCategorySelects();
+        renderCategoryTags();
+    }
 
-        document.getElementById('placeOrderBtn').addEventListener('click', async function() {
-            // 🔍 DEBUG: Log the current order type
-            console.log('📦 Order button clicked, state.orderType:', state.orderType);
-            console.log('📦 Full state:', state);
-
-            if (state.mode === 'admin') {
-                showStatus('សូមប្តូរទៅរបៀបអតិថិជនដើម្បីដាក់ការបញ្ជាទិញ', 'error');
-                return;
-            }
-
-            const items = Object.values(state.items);
-            if (items.length === 0) {
-                showStatus('សូមជ្រើសរើសមុខម្ហូបយ៉ាងតិច ១ មុខ!', 'error');
-                return;
-            }
-
-            this.disabled = true;
-            this.textContent = '⏳ កំពុងដំណើរការ...';
-
-            const orderNumber = await generateOrderNumber(); // "001", "002", "003"
-            console.log('📋 Order number generated:', orderNumber);
-
-            // ✅ Ensure orderType is set with fallback
-            const orderTypeDisplay = state.orderType === 'Here' ? 'ញុាំទីនេះ' : 
-                                     state.orderType === 'Take Away' ? 'ច្រកទៅផ្ទះ' : 
-                                     'ញុាំទីនេះ'; // Default fallback
-            
-            console.log('📦 Final order type:', orderTypeDisplay);
-            console.log('📦 state.orderType value:', state.orderType);
-
-            const order = {
-                number: orderNumber,
-                type: orderTypeDisplay,
-                items: items.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    qty: item.qty
-                })),
-                total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
-                instructions: document.getElementById('instructions').value,
-                timestamp: new Date().toISOString(),
-                status: 'pending'
-            };
-            
-            console.log('📦 Final order object:', order);
-
-            state.orderHistory.push(order);
-            state.currentOrder = order;
-            saveState();
-
-            showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
-            
-            setTimeout(() => {
-                showReceipt(order);
-            }, 500);
-
-            setTimeout(() => {
-                resetOrder();
-                this.disabled = false;
-                this.textContent = '📤 ដាក់ការបញ្ជាទិញ';
-            }, 1000);
-        });
-
-        async function resetOrder() {
-            document.querySelectorAll('.menu-item.selected').forEach(item => {
-                item.classList.remove('selected');
-            });
-            state.items = {};
-            document.getElementById('instructions').value = '';
-            updateSummary();
-            
-            state.currentOrderNumber = null;
-            await generateOrderNumber();
-            saveState();
+    function renderCategoryTags() {
+        const container = document.getElementById('categoryTags');
+        if (menuData.categories.length === 0) {
+            container.innerHTML = '<span style="color:#999;font-size:14px;">មិនទាន់មានប្រភេទទេ។ បន្ថែមខាងក្រោម។</span>';
+            return;
         }
+        container.innerHTML = menuData.categories.map(cat => `
+            <span class="category-tag">
+                ${cat}
+                <span class="remove-cat" onclick="deleteCategory('${cat}')">✕</span>
+            </span>
+        `).join('');
+    }
 
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-            statusDiv.style.display = 'block';
-            clearTimeout(window.statusTimeout);
-            window.statusTimeout = setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 4000);
-        }
-        // ============================================
-        // ADMIN FUNCTIONS
-        // ============================================
-
-        function setMode(mode) {
-            state.mode = mode;
-            const container = document.getElementById('appContainer');
-            const adminBanner = document.getElementById('adminBanner');
-            const customerBtn = document.getElementById('customerMode');
-            const adminBtn = document.getElementById('adminMode');
-
-            if (mode === 'admin') {
-                container.classList.add('admin-mode');
-                adminBanner.classList.add('active');
-                customerBtn.classList.remove('active');
-                adminBtn.classList.add('active');
-                document.getElementById('adminAddSection').style.display = 'block';
-                document.getElementById('categoryManagement').style.display = 'block';
-                renderCategoryTags();
-                // Re-render menu to show admin controls
-                renderMenu();
-            } else {
-                container.classList.remove('admin-mode');
-                adminBanner.classList.remove('active');
-                customerBtn.classList.add('active');
-                adminBtn.classList.remove('active');
-                document.getElementById('adminAddSection').style.display = 'none';
-                document.getElementById('categoryManagement').style.display = 'none';
-                renderMenu();
-            }
-        }
-
-        function addCategory() {
-            const input = document.getElementById('newCategoryName');
-            const name = input.value.trim();
-            if (!name) {
-                showStatus('សូមបញ្ចូលឈ្មោះប្រភេទ', 'error');
-                return;
-            }
-            if (menuData.categories.includes(name)) {
-                showStatus('ប្រភេទនេះមានរួចហើយ', 'error');
-                return;
-            }
-
-            menuData.categories.push(name);
-            saveMenu();
-            renderCategoryTags();
-            updateCategorySelects();
-            renderMenu();
-            input.value = '';
-            showStatus(`✅ បានបន្ថែមប្រភេទ "${name}"`, 'success');
-        }
-
-        function deleteCategory(category) {
-            const itemCount = menuData.items.filter(i => i.category === category).length;
-            if (itemCount > 0) {
-                if (!confirm(`ប្រភេទ "${category}" មាន ${itemCount} មុខម្ហូប។ ចង់លុបប្រភេទ និងមុខម្ហូបទាំងអស់?`)) return;
-                menuData.items = menuData.items.filter(i => i.category !== category);
-            } else {
-                if (!confirm(`លុបប្រភេទ "${category}"?`)) return;
-            }
-
-            menuData.categories = menuData.categories.filter(c => c !== category);
-            saveMenu();
-            renderCategoryTags();
-            updateCategorySelects();
-            renderMenu();
-            showStatus(`🗑️ បានលុបប្រភេទ "${category}"`, 'info');
-        }
-
-        function addMenuItem() {
-            const category = document.getElementById('adminCategorySelect').value;
-            const name = document.getElementById('adminItemName').value.trim();
-            const price = parseFloat(document.getElementById('adminItemPrice').value);
-            const emoji = document.getElementById('adminItemEmoji').value.trim() || '🍽️';
-
-            if (!category) {
-                showStatus('សូមជ្រើសរើសប្រភេទ', 'error');
-                return;
-            }
-            if (!name) {
-                showStatus('សូមបញ្ចូលឈ្មោះម្ហូប', 'error');
-                return;
-            }
-            if (isNaN(price) || price <= 0) {
-                showStatus('សូមបញ្ចូលតម្លៃត្រឹមត្រូវ', 'error');
-                return;
-            }
-
-            const id = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
-
-            menuData.items.push({
-                id: id,
-                name: name,
-                price: price,
-                category: category,
-                emoji: emoji
-            });
-
-            saveMenu();
-            renderMenu();
-
-            document.getElementById('adminItemName').value = '';
-            document.getElementById('adminItemPrice').value = '';
-            document.getElementById('adminItemEmoji').value = '🍽️';
-
-            showStatus(`✅ បានបន្ថែម "${name}" ទៅ ${category}`, 'success');
-        }
-
-        function deleteItem(id) {
-            const item = menuData.items.find(i => i.id === id);
-            if (!item) return;
-            if (!confirm(`លុប "${item.name}" ចេញពីម៉ឺនុយ?`)) return;
-
-            menuData.items = menuData.items.filter(i => i.id !== id);
-            if (state.items[id]) {
-                delete state.items[id];
-            }
-            saveMenu();
-            renderMenu();
-            updateSummary();
-            showStatus(`🗑️ បានលុប "${item.name}"`, 'info');
-        }
-
-        function editItem(id) {
-            const item = menuData.items.find(i => i.id === id);
-            if (!item) return;
-
-            state.editingItemId = id;
-            document.getElementById('editItemName').value = item.name;
-            document.getElementById('editItemPrice').value = item.price;
-            document.getElementById('editItemEmoji').value = item.emoji || '🍽️';
-
-            const select = document.getElementById('editItemCategory');
+    function updateCategorySelects() {
+        const selects = ['adminCategorySelect', 'editItemCategory'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const currentVal = select.value;
             select.innerHTML = '<option value="">ជ្រើសរើសប្រភេទ</option>';
             menuData.categories.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat;
                 option.textContent = cat;
-                if (cat === item.category) option.selected = true;
                 select.appendChild(option);
             });
-
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function saveEditItem() {
-            const id = state.editingItemId;
-            const item = menuData.items.find(i => i.id === id);
-            if (!item) return;
-
-            const name = document.getElementById('editItemName').value.trim();
-            const price = parseFloat(document.getElementById('editItemPrice').value);
-            const category = document.getElementById('editItemCategory').value;
-            const emoji = document.getElementById('editItemEmoji').value.trim() || '🍽️';
-
-            if (!name) {
-                showStatus('សូមបញ្ចូលឈ្មោះម្ហូប', 'error');
-                return;
+            if (currentVal && menuData.categories.includes(currentVal)) {
+                select.value = currentVal;
             }
-            if (isNaN(price) || price <= 0) {
-                showStatus('សូមបញ្ចូលតម្លៃត្រឹមត្រូវ', 'error');
-                return;
-            }
-            if (!category) {
-                showStatus('សូមជ្រើសរើសប្រភេទ', 'error');
-                return;
-            }
-
-            item.name = name;
-            item.price = price;
-            item.category = category;
-            item.emoji = emoji;
-
-            saveMenu();
-            renderMenu();
-            updateSummary();
-            closeModal('editModal');
-            showStatus(`✅ បានកែប្រែ "${name}"`, 'success');
-        }
-
-        function resetMenu() {
-            if (!confirm('កំណត់ម៉ឺនុយឡើងវិញទៅជាលំនាំដើម? វានឹងលុបមុខម្ហូប និងប្រភេទដែលបានបន្ថែមទាំងអស់។')) return;
-            menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
-            saveMenu();
-            renderCategoryTags();
-            updateCategorySelects();
-            renderMenu();
-            showStatus('🔄 បានកំណត់ម៉ឺនុយឡើងវិញ', 'info');
-        }
-
-        // ============================================
-        // RECEIPT & HISTORY
-        // ============================================
-
-function showReceipt(order) {
-    const modal = document.getElementById('receiptModal');
-    const content = document.getElementById('receiptContent');
-
-    const orderToShow = order || state.currentOrder;
-    if (!orderToShow) {
-        showStatus('មិនមានការបញ្ជាទិញដើម្បីបង្ហាញបង្កាន់ដៃ', 'error');
-        return;
+        });
     }
 
-    const date = new Date(orderToShow.timestamp);
-    const itemsHtml = orderToShow.items.map(item => `
-        <div class="receipt-item">
-            <span>${item.qty}× ${item.name}</span>
-            <span>៛${(item.price * item.qty).toLocaleString()}</span>
-        </div>
-    `).join('');
+    // ============================================
+    // ORDER FUNCTIONS
+    // ============================================
 
-    content.innerHTML = `
-        <div class="receipt" id="printableReceipt">
-            <div class="receipt-header">
-                <h2>🍲 ហតផត & អាហារសម្រន់</h2>
-                <div style="font-size:14px;color:#666;">
-    លេខបញ្ជាទិញ #${orderToShow.number}
-</div>
-                <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
-                <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
-            </div>
-            ${itemsHtml}
-            <div class="receipt-total">
-                <span>សរុប</span>
-                <span>៛${orderToShow.total.toLocaleString()}</span>
-            </div>
-            ${orderToShow.instructions ? `
-                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:12px;color:#666;">
-                    📝 កំណត់ចំណាំ: ${orderToShow.instructions}
-                </div>
-            ` : ''}
-            <div class="receipt-footer">
-                ✅ ចុច "យល់ព្រម" ដើម្បីផ្ញើទៅផ្ទះបាយ
-                <br>🖨️ ឬចុច "បោះពុម្ព" ដើម្បីបោះពុម្ពបង្កាន់ដៃ
-            </div>
-        </div>
-    `;
-
-    modal.classList.add('active');
-}
-        function printReceipt() {
-            const content = document.getElementById('printableReceipt');
-            if (!content) {
-                showStatus('មិនមានបង្កាន់ដៃដើម្បីបោះពុម្ព', 'error');
-                return;
-            }
-
-            const printWindow = window.open('', '_blank', 'width=400,height=600');
-            printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>បង្កាន់ដៃ #${state.currentOrder?.number || '0000'}</title>
-                        <style>
-                            body { font-family: 'Khmer OS', 'Courier New', monospace; padding: 20px; }
-                            .receipt { max-width: 300px; margin: 0 auto; }
-                            .receipt-header { text-align: center; border-bottom: 2px dashed #333; padding-bottom: 12px; margin-bottom: 12px; }
-                            .receipt-item { display: flex; justify-content: space-between; padding: 4px 0; }
-                            .receipt-total { border-top: 2px dashed #333; padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; }
-                            .receipt-footer { text-align: center; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #333; font-size: 12px; color: #666; }
-                            @media print { body { padding: 0; } }
-                        </style>
-                    </head>
-                    <body>
-                        ${content.outerHTML}
-                        <script>
-                            window.onload = function() {
-                                window.print();
-                                setTimeout(() => window.close(), 1000);
-                            };
-                        <\/script>
-                    </body>
-                </html>
-            `);
-            printWindow.document.close();
+    async function generateOrderNumber() {
+        if (state.currentOrderNumber) {
+            document.getElementById('orderNumber').textContent = state.currentOrderNumber;
+            return state.currentOrderNumber;
         }
-
-        function showHistory() {
-            const modal = document.getElementById('historyModal');
-            const list = document.getElementById('historyList');
-
-            if (state.orderHistory.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <p>មិនទាន់មានការបញ្ជាទិញទេ</p>
-                        <p style="font-size:13px;color:#999;">ដាក់ការបញ្ជាទិញដំបូងដើម្បីមើលនៅទីនេះ</p>
-                    </div>
-                `;
-            } else {
-                list.innerHTML = state.orderHistory.slice().reverse().map(order => `
-                    <div class="history-item" onclick="showReceiptFromHistory('${order.number}')">
-                        <div>
-                            <span class="h-order">#${order.number}</span>
-                            <span class="h-total">៛${order.total.toLocaleString()}</span>
-                        </div>
-                        <div>
-                            <span class="h-time">${new Date(order.timestamp).toLocaleString('km-KH')}</span>
-                            <span style="margin-left:8px;font-size:12px;color:#666;">${order.type}</span>
-                            <span style="margin-left:8px;font-size:12px;color:#666;">${order.items.length} មុខ</span>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            modal.classList.add('active');
-        }
-
-        function showReceiptFromHistory(orderNumber) {
-            const order = state.orderHistory.find(o => o.number === orderNumber);
-            if (order) {
-                state.currentOrder = order;
-                closeModal('historyModal');
-                setTimeout(() => showReceipt(order), 300);
-            }
-        }
-
-        function clearHistory() {
-            if (confirm('លុបប្រវត្តិការបញ្ជាទិញទាំងអស់?')) {
-                state.orderHistory = [];
-                saveState();
-                showHistory();
-                showStatus('បានលុបប្រវត្តិ', 'info');
-            }
-        }
-
-        function clearAll() {
-            if (confirm('លុបការជ្រើសរើសទាំងអស់?')) {
-                resetOrder();
-                showStatus('បានលុបការជ្រើសរើសទាំងអស់', 'info');
-            }
-        }
-
-        // ============================================
-        // MODAL HELPERS
-        // ============================================
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-
-        // ============================================
-        // KEYBOARD SHORTCUTS
-        // ============================================
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay.active').forEach(el => {
-                    el.classList.remove('active');
-                });
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                document.getElementById('placeOrderBtn').click();
-            }
-        });
-// ============================================
-// ADMIN PASSWORD PROTECTION
-// ============================================
-
-// 🔑 Change this password to your own!
-const ADMIN_PASSWORD = '1369';
-
-let adminTriggerCount = 0;
-let adminTriggerTimer = null;
-
-function triggerAdminLogin() {
-    adminTriggerCount++;
-    
-    // Clear the timer if it exists
-    clearTimeout(adminTriggerTimer);
-    
-    // Reset after 3 seconds of no clicks
-    adminTriggerTimer = setTimeout(() => {
-        adminTriggerCount = 0;
-    }, 3000);
-    
-    // If 3 clicks detected, show password prompt
-    if (adminTriggerCount >= 3) {
-        adminTriggerCount = 0;
-        const password = prompt('🔐 បញ្ចូលពាក្យសម្ងាត់អ្នកគ្រប់គ្រង:');
         
-        if (password === ADMIN_PASSWORD) {
-            const adminToggle = document.getElementById('adminToggle');
-            if (adminToggle.style.display === 'none') {
-                adminToggle.style.display = 'flex';
-                showStatus('🔧 របៀបអ្នកគ្រប់គ្រង បានបើក!', 'success');
-            } else {
-                adminToggle.style.display = 'none';
-                // If in admin mode, switch back to customer
-                if (state.mode === 'admin') {
-                    setMode('customer');
-                }
-                showStatus('👤 បានបិទរបៀបអ្នកគ្រប់គ្រង', 'info');
+        try {
+            const today = new Date().toDateString();
+            const counterRef = ref(db, `counters/${today}`);
+            
+            const result = await runTransaction(counterRef, (currentData) => {
+                if (currentData === null) return 1;
+                return currentData + 1;
+            });
+            
+            if (!result.committed) {
+                throw new Error('Transaction failed');
             }
-        } else if (password !== null && password !== '') {
-            showStatus('❌ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ!', 'error');
+            
+            const counter = result.snapshot.val() || 1;
+            const orderNumber = String(counter).padStart(3, '0');
+            
+            state.currentOrderNumber = orderNumber;
+            document.getElementById('orderNumber').textContent = orderNumber;
+            saveState();
+            
+            console.log(`📋 Order #${orderNumber} (Day ${today})`);
+            return orderNumber;
+            
+        } catch (error) {
+            console.error('❌ Firebase error:', error);
+            showStatus('⚠️ មិនអាចបង្កើតលេខបញ្ជាទិញ, សូមពិនិត្យ internet', 'error');
+            
+            const now = new Date();
+            const time = String(now.getHours()).padStart(2, '0') + 
+                         String(now.getMinutes()).padStart(2, '0') +
+                         String(now.getSeconds()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            const fallbackNumber = `${time}-${random}`;
+            
+            document.getElementById('orderNumber').textContent = fallbackNumber;
+            return fallbackNumber;
         }
-        // If password is null (cancel button), do nothing
     }
-}
-// ============================================
-// ORDER TYPE SELECTION POPUP
-// ============================================
 
-let selectedOrderType = null;
+    function toggleItem(element) {
+        if (state.mode === 'admin') return;
+        const id = element.dataset.id;
 
-function selectOrderType(element) {
-    // Remove selected class from all options
-    document.querySelectorAll('.order-type-option').forEach(opt => {
-        opt.classList.remove('selected');
-    });
-    
-    // Add selected class to clicked option
-    element.classList.add('selected');
-    
-    // Store the selected value
-    selectedOrderType = element.dataset.value;
-    
-    // Enable the confirm button
-    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
-    confirmBtn.classList.add('active');
-}
-
-function confirmOrderType() {
-     console.log('🔄 confirmOrderType called, selectedOrderType:', selectedOrderType);
-    if (!selectedOrderType) {
-        showStatus('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!', 'error');
-        return;
-    }
-    
-    // Set the order type in state
-    state.orderType = selectedOrderType;
-    
-    // Update the radio buttons to match selection
-    document.querySelectorAll('.option-item').forEach(item => {
-        const radio = item.querySelector('input');
-        if (radio && radio.value === selectedOrderType) {
-            item.classList.add('active');
-            radio.checked = true;
-        } else if (radio) {
-            item.classList.remove('active');
+        if (element.classList.contains('selected')) {
+            element.classList.remove('selected');
+            delete state.items[id];
+        } else {
+            element.classList.add('selected');
+            state.items[id] = {
+                name: element.dataset.name,
+                price: parseFloat(element.dataset.price),
+                category: element.dataset.category,
+                qty: 1
+            };
+            updateQtyDisplay(element, 1);
         }
+
+        updateSummary();
+        saveState();
+    }
+
+    function adjustQty(btn, delta) {
+        if (state.mode === 'admin') return;
+        const item = btn.closest('.menu-item');
+        const id = item.dataset.id;
+
+        if (!state.items[id]) return;
+
+        let newQty = state.items[id].qty + delta;
+        if (newQty < 1) {
+            item.classList.remove('selected');
+            delete state.items[id];
+            updateSummary();
+            saveState();
+            return;
+        }
+
+        state.items[id].qty = newQty;
+        updateQtyDisplay(item, newQty);
+        updateSummary();
+        saveState();
+    }
+
+    function updateQtyDisplay(item, qty) {
+        const badge = item.querySelector('.qty-badge');
+        const value = item.querySelector('.qty-value');
+        if (badge) badge.textContent = qty;
+        if (value) value.textContent = qty;
+    }
+
+    function updateSummary() {
+        const summaryGroup = document.getElementById('summaryGroup');
+        const summaryDiv = document.getElementById('orderSummary');
+        const totalSpan = document.getElementById('totalPrice');
+        const itemCountSpan = document.getElementById('itemCount');
+
+        const items = Object.values(state.items);
+
+        if (items.length === 0) {
+            summaryGroup.style.display = 'none';
+            return;
+        }
+
+        summaryGroup.style.display = 'block';
+
+        let html = '';
+        let total = 0;
+        let totalItems = 0;
+
+        items.forEach(item => {
+            const subtotal = item.price * item.qty;
+            total += subtotal;
+            totalItems += item.qty;
+
+            html += `
+                <div class="summary-item">
+                    <div class="item-info">
+                        <span class="item-qty">${item.qty}×</span>
+                        <span>${item.name}</span>
+                    </div>
+                    <div>
+                        <span>៛${subtotal.toLocaleString()}</span>
+                        <button class="remove-btn" onclick="removeItem('${Object.keys(state.items).find(key => state.items[key] === item)}')">✕</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        summaryDiv.innerHTML = html;
+        totalSpan.textContent = total.toLocaleString();
+        itemCountSpan.textContent = totalItems;
+    }
+
+    function removeItem(id) {
+        if (!confirm(`លុប "${state.items[id].name}" ចេញពីការបញ្ជាទិញ?`)) return;
+
+        const menuItem = document.querySelector(`.menu-item[data-id="${id}"]`);
+        if (menuItem) {
+            menuItem.classList.remove('selected');
+        }
+
+        delete state.items[id];
+        updateSummary();
+        saveState();
+        showStatus('បានលុបមុខម្ហូប', 'info');
+    }
+
+    // ============================================
+    // ORDER TYPE - GLOBAL EXPOSURE
+    // ============================================
+
+    let selectedOrderType = null;
+
+    // 🔥 EXPOSE to window so onclick works
+    window.selectOrderType = function(element) {
+        document.querySelectorAll('.order-type-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        element.classList.add('selected');
+        selectedOrderType = element.dataset.value;
+        
+        const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+        confirmBtn.classList.add('active');
+        
+        console.log('✅ Order type selected:', selectedOrderType);
+    };
+
+    window.confirmOrderType = function() {
+        console.log('🔄 confirmOrderType called, selectedOrderType:', selectedOrderType);
+        
+        if (!selectedOrderType) {
+            showStatus('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!', 'error');
+            return;
+        }
+        
+        state.orderType = selectedOrderType;
+        console.log('✅ state.orderType set to:', state.orderType);
+        
+        document.querySelectorAll('.option-item').forEach(item => {
+            const radio = item.querySelector('input');
+            if (radio && radio.value === selectedOrderType) {
+                item.classList.add('active');
+                radio.checked = true;
+            } else if (radio) {
+                item.classList.remove('active');
+            }
+        });
+        
+        document.getElementById('orderTypeOverlay').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('main-content-hidden');
+        
+        saveState();
+        
+        const typeDisplay = selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
+        showStatus(`✅ បានជ្រើសរើស: ${typeDisplay}`, 'success');
+    };
+
+    // ============================================
+    // PLACE ORDER
+    // ============================================
+
+    document.getElementById('placeOrderBtn').addEventListener('click', async function() {
+        console.log('📦 Order button clicked, state.orderType:', state.orderType);
+
+        if (state.mode === 'admin') {
+            showStatus('សូមប្តូរទៅរបៀបអតិថិជនដើម្បីដាក់ការបញ្ជាទិញ', 'error');
+            return;
+        }
+
+        const items = Object.values(state.items);
+        if (items.length === 0) {
+            showStatus('សូមជ្រើសរើសមុខម្ហូបយ៉ាងតិច ១ មុខ!', 'error');
+            return;
+        }
+
+        this.disabled = true;
+        this.textContent = '⏳ កំពុងដំណើរការ...';
+
+        const orderNumber = await generateOrderNumber();
+        console.log('📋 Order number generated:', orderNumber);
+
+        const orderTypeDisplay = state.orderType === 'Here' ? 'ញុាំទីនេះ' : 
+                                 state.orderType === 'Take Away' ? 'ច្រកទៅផ្ទះ' : 
+                                 'ញុាំទីនេះ';
+        
+        const order = {
+            number: orderNumber,
+            type: orderTypeDisplay,
+            items: items.map(item => ({
+                name: item.name,
+                price: item.price,
+                qty: item.qty
+            })),
+            total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
+            instructions: document.getElementById('instructions').value,
+            timestamp: new Date().toISOString(),
+            status: 'pending'
+        };
+
+        state.orderHistory.push(order);
+        state.currentOrder = order;
+        saveState();
+
+        showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
+        
+        setTimeout(() => {
+            showReceipt(order);
+        }, 500);
+
+        setTimeout(() => {
+            resetOrder();
+            this.disabled = false;
+            this.textContent = '📤 ដាក់ការបញ្ជាទិញ';
+        }, 1000);
     });
-    
-    // Hide the popup
-    document.getElementById('orderTypeOverlay').style.display = 'none';
-    
-    // Show the main content
-    document.getElementById('mainContent').classList.remove('main-content-hidden');
-    
-    // ✅ Save state
-    saveState();
-    
-    showStatus(`✅ បានជ្រើសរើស: ${selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ'}`, 'success');
-}
-        // ============================================
-        // INITIALIZATION
-        // ============================================
 
-// First, show the popup and hide main content
-document.getElementById('mainContent').classList.add('main-content-hidden');
-// The popup is visible by default
-loadMenu();
-loadState();
-
-// Generate a fresh order number on load
-(async function init() {
-    try {
+    async function resetOrder() {
+        document.querySelectorAll('.menu-item.selected').forEach(item => {
+            item.classList.remove('selected');
+        });
+        state.items = {};
+        document.getElementById('instructions').value = '';
+        updateSummary();
+        
+        state.currentOrderNumber = null;
         await generateOrderNumber();
-    } catch (error) {
-        console.warn('⚠️ Using fallback number');
+        saveState();
+    }
+
+    function showStatus(message, type) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = message;
+        statusDiv.className = `status ${type}`;
+        statusDiv.style.display = 'block';
+        clearTimeout(window.statusTimeout);
+        window.statusTimeout = setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 4000);
+    }
+
+    // ============================================
+    // ADMIN FUNCTIONS - GLOBAL EXPOSURE
+    // ============================================
+
+    window.setMode = function(mode) {
+        state.mode = mode;
+        const container = document.getElementById('appContainer');
+        const adminBanner = document.getElementById('adminBanner');
+        const customerBtn = document.getElementById('customerMode');
+        const adminBtn = document.getElementById('adminMode');
+
+        if (mode === 'admin') {
+            container.classList.add('admin-mode');
+            adminBanner.classList.add('active');
+            customerBtn.classList.remove('active');
+            adminBtn.classList.add('active');
+            document.getElementById('adminAddSection').style.display = 'block';
+            document.getElementById('categoryManagement').style.display = 'block';
+            renderCategoryTags();
+            renderMenu();
+        } else {
+            container.classList.remove('admin-mode');
+            adminBanner.classList.remove('active');
+            customerBtn.classList.add('active');
+            adminBtn.classList.remove('active');
+            document.getElementById('adminAddSection').style.display = 'none';
+            document.getElementById('categoryManagement').style.display = 'none';
+            renderMenu();
+        }
+    };
+
+    window.addCategory = function() {
+        const input = document.getElementById('newCategoryName');
+        const name = input.value.trim();
+        if (!name) {
+            showStatus('សូមបញ្ចូលឈ្មោះប្រភេទ', 'error');
+            return;
+        }
+        if (menuData.categories.includes(name)) {
+            showStatus('ប្រភេទនេះមានរួចហើយ', 'error');
+            return;
+        }
+
+        menuData.categories.push(name);
+        saveMenu();
+        renderCategoryTags();
+        updateCategorySelects();
+        renderMenu();
+        input.value = '';
+        showStatus(`✅ បានបន្ថែមប្រភេទ "${name}"`, 'success');
+    };
+
+    window.deleteCategory = function(category) {
+        const itemCount = menuData.items.filter(i => i.category === category).length;
+        if (itemCount > 0) {
+            if (!confirm(`ប្រភេទ "${category}" មាន ${itemCount} មុខម្ហូប។ ចង់លុបប្រភេទ និងមុខម្ហូបទាំងអស់?`)) return;
+            menuData.items = menuData.items.filter(i => i.category !== category);
+        } else {
+            if (!confirm(`លុបប្រភេទ "${category}"?`)) return;
+        }
+
+        menuData.categories = menuData.categories.filter(c => c !== category);
+        saveMenu();
+        renderCategoryTags();
+        updateCategorySelects();
+        renderMenu();
+        showStatus(`🗑️ បានលុបប្រភេទ "${category}"`, 'info');
+    };
+
+    window.addMenuItem = function() {
+        const category = document.getElementById('adminCategorySelect').value;
+        const name = document.getElementById('adminItemName').value.trim();
+        const price = parseFloat(document.getElementById('adminItemPrice').value);
+        const emoji = document.getElementById('adminItemEmoji').value.trim() || '🍽️';
+
+        if (!category) {
+            showStatus('សូមជ្រើសរើសប្រភេទ', 'error');
+            return;
+        }
+        if (!name) {
+            showStatus('សូមបញ្ចូលឈ្មោះម្ហូប', 'error');
+            return;
+        }
+        if (isNaN(price) || price <= 0) {
+            showStatus('សូមបញ្ចូលតម្លៃត្រឹមត្រូវ', 'error');
+            return;
+        }
+
+        const id = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
+
+        menuData.items.push({
+            id: id,
+            name: name,
+            price: price,
+            category: category,
+            emoji: emoji
+        });
+
+        saveMenu();
+        renderMenu();
+
+        document.getElementById('adminItemName').value = '';
+        document.getElementById('adminItemPrice').value = '';
+        document.getElementById('adminItemEmoji').value = '🍽️';
+
+        showStatus(`✅ បានបន្ថែម "${name}" ទៅ ${category}`, 'success');
+    };
+
+    window.deleteItem = function(id) {
+        const item = menuData.items.find(i => i.id === id);
+        if (!item) return;
+        if (!confirm(`លុប "${item.name}" ចេញពីម៉ឺនុយ?`)) return;
+
+        menuData.items = menuData.items.filter(i => i.id !== id);
+        if (state.items[id]) {
+            delete state.items[id];
+        }
+        saveMenu();
+        renderMenu();
+        updateSummary();
+        showStatus(`🗑️ បានលុប "${item.name}"`, 'info');
+    };
+
+    window.editItem = function(id) {
+        const item = menuData.items.find(i => i.id === id);
+        if (!item) return;
+
+        state.editingItemId = id;
+        document.getElementById('editItemName').value = item.name;
+        document.getElementById('editItemPrice').value = item.price;
+        document.getElementById('editItemEmoji').value = item.emoji || '🍽️';
+
+        const select = document.getElementById('editItemCategory');
+        select.innerHTML = '<option value="">ជ្រើសរើសប្រភេទ</option>';
+        menuData.categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (cat === item.category) option.selected = true;
+            select.appendChild(option);
+        });
+
+        document.getElementById('editModal').classList.add('active');
+    };
+
+    window.saveEditItem = function() {
+        const id = state.editingItemId;
+        const item = menuData.items.find(i => i.id === id);
+        if (!item) return;
+
+        const name = document.getElementById('editItemName').value.trim();
+        const price = parseFloat(document.getElementById('editItemPrice').value);
+        const category = document.getElementById('editItemCategory').value;
+        const emoji = document.getElementById('editItemEmoji').value.trim() || '🍽️';
+
+        if (!name) {
+            showStatus('សូមបញ្ចូលឈ្មោះម្ហូប', 'error');
+            return;
+        }
+        if (isNaN(price) || price <= 0) {
+            showStatus('សូមបញ្ចូលតម្លៃត្រឹមត្រូវ', 'error');
+            return;
+        }
+        if (!category) {
+            showStatus('សូមជ្រើសរើសប្រភេទ', 'error');
+            return;
+        }
+
+        item.name = name;
+        item.price = price;
+        item.category = category;
+        item.emoji = emoji;
+
+        saveMenu();
+        renderMenu();
+        updateSummary();
+        closeModal('editModal');
+        showStatus(`✅ បានកែប្រែ "${name}"`, 'success');
+    };
+
+    window.resetMenu = function() {
+        if (!confirm('កំណត់ម៉ឺនុយឡើងវិញទៅជាលំនាំដើម? វានឹងលុបមុខម្ហូប និងប្រភេទដែលបានបន្ថែមទាំងអស់។')) return;
+        menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
+        saveMenu();
+        renderCategoryTags();
+        updateCategorySelects();
+        renderMenu();
+        showStatus('🔄 បានកំណត់ម៉ឺនុយឡើងវិញ', 'info');
+    };
+
+    // ============================================
+    // RECEIPT & HISTORY - GLOBAL EXPOSURE
+    // ============================================
+
+    window.showReceipt = function(order) {
+        const modal = document.getElementById('receiptModal');
+        const content = document.getElementById('receiptContent');
+
+        const orderToShow = order || state.currentOrder;
+        if (!orderToShow) {
+            showStatus('មិនមានការបញ្ជាទិញដើម្បីបង្ហាញបង្កាន់ដៃ', 'error');
+            return;
+        }
+
+        const date = new Date(orderToShow.timestamp);
+        const itemsHtml = orderToShow.items.map(item => `
+            <div class="receipt-item">
+                <span>${item.qty}× ${item.name}</span>
+                <span>៛${(item.price * item.qty).toLocaleString()}</span>
+            </div>
+        `).join('');
+
+        content.innerHTML = `
+            <div class="receipt" id="printableReceipt">
+                <div class="receipt-header">
+                    <h2>🍲 ហតផត & អាហារសម្រន់</h2>
+                    <div style="font-size:14px;color:#666;">
+                        លេខបញ្ជាទិញ #${orderToShow.number}
+                    </div>
+                    <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
+                    <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
+                </div>
+                ${itemsHtml}
+                <div class="receipt-total">
+                    <span>សរុប</span>
+                    <span>៛${orderToShow.total.toLocaleString()}</span>
+                </div>
+                ${orderToShow.instructions ? `
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:12px;color:#666;">
+                        📝 កំណត់ចំណាំ: ${orderToShow.instructions}
+                    </div>
+                ` : ''}
+                <div class="receipt-footer">
+                    ✅ ចុច "យល់ព្រម" ដើម្បីផ្ញើទៅផ្ទះបាយ
+                    <br>🖨️ ឬចុច "បោះពុម្ព" ដើម្បីបោះពុម្ពបង្កាន់ដៃ
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('active');
+    };
+
+    window.printReceipt = function() {
+        const content = document.getElementById('printableReceipt');
+        if (!content) {
+            showStatus('មិនមានបង្កាន់ដៃដើម្បីបោះពុម្ព', 'error');
+            return;
+        }
+
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>បង្កាន់ដៃ #${state.currentOrder?.number || '0000'}</title>
+                    <style>
+                        body { font-family: 'Khmer OS', 'Courier New', monospace; padding: 20px; }
+                        .receipt { max-width: 300px; margin: 0 auto; }
+                        .receipt-header { text-align: center; border-bottom: 2px dashed #333; padding-bottom: 12px; margin-bottom: 12px; }
+                        .receipt-item { display: flex; justify-content: space-between; padding: 4px 0; }
+                        .receipt-total { border-top: 2px dashed #333; padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; }
+                        .receipt-footer { text-align: center; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #333; font-size: 12px; color: #666; }
+                        @media print { body { padding: 0; } }
+                    </style>
+                </head>
+                <body>
+                    ${content.outerHTML}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(() => window.close(), 1000);
+                        };
+                    <\/script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+
+    window.showHistory = function() {
+        const modal = document.getElementById('historyModal');
+        const list = document.getElementById('historyList');
+
+        if (state.orderHistory.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>មិនទាន់មានការបញ្ជាទិញទេ</p>
+                    <p style="font-size:13px;color:#999;">ដាក់ការបញ្ជាទិញដំបូងដើម្បីមើលនៅទីនេះ</p>
+                </div>
+            `;
+        } else {
+            list.innerHTML = state.orderHistory.slice().reverse().map(order => `
+                <div class="history-item" onclick="showReceiptFromHistory('${order.number}')">
+                    <div>
+                        <span class="h-order">#${order.number}</span>
+                        <span class="h-total">៛${order.total.toLocaleString()}</span>
+                    </div>
+                    <div>
+                        <span class="h-time">${new Date(order.timestamp).toLocaleString('km-KH')}</span>
+                        <span style="margin-left:8px;font-size:12px;color:#666;">${order.type}</span>
+                        <span style="margin-left:8px;font-size:12px;color:#666;">${order.items.length} មុខ</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        modal.classList.add('active');
+    };
+
+    window.showReceiptFromHistory = function(orderNumber) {
+        const order = state.orderHistory.find(o => o.number === orderNumber);
+        if (order) {
+            state.currentOrder = order;
+            closeModal('historyModal');
+            setTimeout(() => showReceipt(order), 300);
+        }
+    };
+
+    window.clearHistory = function() {
+        if (confirm('លុបប្រវត្តិការបញ្ជាទិញទាំងអស់?')) {
+            state.orderHistory = [];
+            saveState();
+            showHistory();
+            showStatus('បានលុបប្រវត្តិ', 'info');
+        }
+    };
+
+    window.clearAll = function() {
+        if (confirm('លុបការជ្រើសរើសទាំងអស់?')) {
+            resetOrder();
+            showStatus('បានលុបការជ្រើសរើសទាំងអស់', 'info');
+        }
+    };
+
+    // ============================================
+    // MODAL HELPERS - GLOBAL EXPOSURE
+    // ============================================
+
+    window.closeModal = function(id) {
+        document.getElementById(id).classList.remove('active');
+    };
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
+
+    // ============================================
+    // ADMIN PASSWORD - GLOBAL EXPOSURE
+    // ============================================
+
+    const ADMIN_PASSWORD = '1369';
+    let adminTriggerCount = 0;
+    let adminTriggerTimer = null;
+
+    window.triggerAdminLogin = function() {
+        adminTriggerCount++;
+        
+        clearTimeout(adminTriggerTimer);
+        
+        adminTriggerTimer = setTimeout(() => {
+            adminTriggerCount = 0;
+        }, 3000);
+        
+        if (adminTriggerCount >= 3) {
+            adminTriggerCount = 0;
+            const password = prompt('🔐 បញ្ចូលពាក្យសម្ងាត់អ្នកគ្រប់គ្រង:');
+            
+            if (password === ADMIN_PASSWORD) {
+                const adminToggle = document.getElementById('adminToggle');
+                if (adminToggle.style.display === 'none') {
+                    adminToggle.style.display = 'flex';
+                    showStatus('🔧 របៀបអ្នកគ្រប់គ្រង បានបើក!', 'success');
+                } else {
+                    adminToggle.style.display = 'none';
+                    if (state.mode === 'admin') {
+                        window.setMode('customer');
+                    }
+                    showStatus('👤 បានបិទរបៀបអ្នកគ្រប់គ្រង', 'info');
+                }
+            } else if (password !== null && password !== '') {
+                showStatus('❌ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ!', 'error');
+            }
+        }
+    };
+
+    // ============================================
+    // TELEGRAM BOT - GLOBAL EXPOSURE
+    // ============================================
+
+    const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
+    const CHAT_ID = '-5362955848';
+
+    window.confirmOrder = async function() {
+        const order = state.currentOrder;
+        if (!order) {
+            showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error');
+            return;
+        }
+
+        const confirmBtn = document.querySelector('#receiptModal .btn-confirm');
+        if (confirmBtn) {
+            confirmBtn.textContent = '⏳ កំពុងផ្ញើ...';
+            confirmBtn.disabled = true;
+        }
+
         const now = new Date();
-        const time = String(now.getHours()).padStart(2, '0') + 
-                     String(now.getMinutes()).padStart(2, '0') +
-                     String(now.getSeconds()).padStart(2, '0');
-        const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-        const fallback = `${time}-${random}`;
-        document.getElementById('orderNumber').textContent = fallback;
-    }
-})();
+        const timeStr = now.toLocaleString('km-KH');
+        const orderNumber = order.number;
 
-renderMenu();
-setMode('customer');
+        const orderItems = order.items.map(item => 
+            `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`
+        ).join('\n');
 
-        console.log('🍲 ប្រព័ន្ធបញ្ជាទិញហតផត');
-        console.log('📊 ម៉ឺនុយ:', menuData.items.length, 'មុខ');
-        console.log('📂 ប្រភេទ:', menuData.categories.join(', '));
-        console.log('📦 ការបញ្ជាទិញ:', state.orderHistory.length);
-        console.log('💡 ចុច Ctrl+Enter ដើម្បីដាក់ការបញ្ជាទិញ');
-        console.log('🔧 ចុច "អ្នកគ្រប់គ្រង" ដើម្បីកែប្រែម៉ឺនុយ');
-
-        // ============================================
-        // TELEGRAM BOT INTEGRATION
-        // ============================================
-
-        // 🔧 IMPORTANT: Replace these with your actual bot token and chat ID
-const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
-const CHAT_ID = '-5362955848';
-
-async function confirmOrder() {
-    const order = state.currentOrder;
-    if (!order) {
-        showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error');
-        return;
-    }
-
-    const confirmBtn = document.querySelector('#receiptModal .btn-confirm');
-    if (confirmBtn) {
-        confirmBtn.textContent = '⏳ កំពុងផ្ញើ...';
-        confirmBtn.disabled = true;
-    }
-
-    const now = new Date();
-    const timeStr = now.toLocaleString('km-KH');
-    
-    // Use the full order number
-    const orderNumber = order.number;
-
-    const orderItems = order.items.map(item => 
-        `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`
-    ).join('\n');
-
-    const message = `🍲 *ការបញ្ជាទិញថ្មី!*
+        const message = `🍲 *ការបញ្ជាទិញថ្មី!*
 
 📋 *លេខបញ្ជាទិញ:* #${orderNumber}
 📦 *ប្រភេទ:* ${order.type}
@@ -2493,87 +2400,128 @@ ${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructi
 
 👨‍🍳 *សូមរៀបចំម្ហូប!*`;
 
-    await sendToTelegram(message, confirmBtn);
-}
+        await sendToTelegram(message, confirmBtn);
+    };
 
-function sendToTelegram(message, confirmBtn) {
-    // Method 1: Try direct first
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: message,
-            parse_mode: 'Markdown'
+    function sendToTelegram(message, confirmBtn) {
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown'
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.ok) {
-            handleTelegramSuccess(confirmBtn);
-        } else {
-            // Try with proxy
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                handleTelegramSuccess(confirmBtn);
+            } else {
+                sendViaProxy(message, confirmBtn);
+            }
+        })
+        .catch(() => {
             sendViaProxy(message, confirmBtn);
-        }
-    })
-    .catch(() => {
-        // Try with proxy
-        sendViaProxy(message, confirmBtn);
-    });
-}
+        });
+    }
 
-function sendViaProxy(message, confirmBtn) {
-    // Method 2: Using CORS proxy (most reliable for GitHub Pages)
-    fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Origin': 'https://chanreas09.github.io'
-        },
-        body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: message,
-            parse_mode: 'Markdown'
+    function sendViaProxy(message, confirmBtn) {
+        fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Origin': 'https://chanreas09.github.io'
+            },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown'
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.ok) {
-            handleTelegramSuccess(confirmBtn);
-        } else {
-            // Fallback to manual
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                handleTelegramSuccess(confirmBtn);
+            } else {
+                manualTelegramSend(message, confirmBtn);
+            }
+        })
+        .catch(() => {
             manualTelegramSend(message, confirmBtn);
+        });
+    }
+
+    function manualTelegramSend(message, confirmBtn) {
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
+        showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
+        closeModal('receiptModal');
+        if (confirmBtn) {
+            confirmBtn.textContent = '✅ យល់ព្រម';
+            confirmBtn.disabled = false;
         }
-    })
-    .catch(() => {
-        // Final fallback: manual
-        manualTelegramSend(message, confirmBtn);
+    }
+
+    function handleTelegramSuccess(confirmBtn) {
+        showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
+        closeModal('receiptModal');
+        if (confirmBtn) {
+            confirmBtn.textContent = '✅ យល់ព្រម';
+            confirmBtn.disabled = false;
+        }
+    }
+
+    // ============================================
+    // KEYBOARD SHORTCUTS
+    // ============================================
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.active').forEach(el => {
+                el.classList.remove('active');
+            });
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            document.getElementById('placeOrderBtn').click();
+        }
+        if (e.key === 'Enter' && document.getElementById('orderTypeOverlay').style.display !== 'none') {
+            window.confirmOrderType();
+        }
     });
-}
 
-        function manualTelegramSend(message, confirmBtn) {
-            // Method 3: Open Telegram with pre-filled message (manual send)
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
-            showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
-            closeModal('receiptModal');
-            if (confirmBtn) {
-                confirmBtn.textContent = '✅ យល់ព្រម';
-                confirmBtn.disabled = false;
-            }
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+
+    document.getElementById('mainContent').classList.add('main-content-hidden');
+    loadMenu();
+    loadState();
+
+    (async function init() {
+        try {
+            await generateOrderNumber();
+        } catch (error) {
+            console.warn('⚠️ Using fallback number');
+            const now = new Date();
+            const time = String(now.getHours()).padStart(2, '0') + 
+                         String(now.getMinutes()).padStart(2, '0') +
+                         String(now.getSeconds()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            const fallback = `${time}-${random}`;
+            document.getElementById('orderNumber').textContent = fallback;
         }
+    })();
 
-        function handleTelegramSuccess(confirmBtn) {
-            showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
-            closeModal('receiptModal');
-            if (confirmBtn) {
-                confirmBtn.textContent = '✅ យល់ព្រម';
-                confirmBtn.disabled = false;
-            }
-        }
+    renderMenu();
+    window.setMode('customer');
 
-    </script>
-
-</body>
+    console.log('🍲 ប្រព័ន្ធបញ្ជាទិញហតផត');
+    console.log('📊 ម៉ឺនុយ:', menuData.items.length, 'មុខ');
+    console.log('📂 ប្រភេទ:', menuData.categories.join(', '));
+    console.log('📦 ការបញ្ជាទិញ:', state.orderHistory.length);
+    console.log('💡 ចុច Ctrl+Enter ដើម្បីដាក់ការបញ្ជាទិញ');
+    console.log('🔧 ចុច "អ្នកគ្រប់គ្រង" ដើម្បីកែប្រែម៉ឺនុយ');
+</script></body>
 </html>
 
