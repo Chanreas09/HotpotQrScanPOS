@@ -401,8 +401,7 @@
                     <div class="subtitle">បញ្ជាទិញ ងាយស្រួល រហ័ស</div>
                     <div class="order-number-container">
                         <span class="order-label">លេខបញ្ជាទិញ</span>
-                        <span class="order-number" id="orderNumber" style="font-size:16px;">---</span>
-                        <span class="badge-new">ថ្មី</span>
+<span class="order-number" id="orderNumber" style="font-size:20px;font-weight:900;color:#e74c3c;">---</span>                        <span class="badge-new">ថ្មី</span>
                     </div>
                 </div>
 
@@ -784,71 +783,26 @@ document.addEventListener('keydown', function(e) {
     // ORDER FUNCTIONS - FIXED!
     // ============================================
 
-    async function generateOrderNumber() {
-        if (state.currentOrderNumber) {
-            document.getElementById('orderNumber').textContent = state.currentOrderNumber;
-            return state.currentOrderNumber;
-        }
-        
-        try {
-            const today = new Date().toDateString();
-            const counterPath = `counters/${today}`;
-            const counterRef = ref(db, counterPath);
-            
-            // Check if counter exists
-            const snapshot = await get(counterRef);
-            let currentCount = snapshot.val();
-            
-            // Initialize if needed
-            if (currentCount === null) {
-                await set(counterRef, 0);
-                currentCount = 0;
-                console.log('📊 Counter initialized to 0');
-            }
-            
-            // Atomic increment
-            const result = await runTransaction(counterRef, (currentData) => {
-                if (currentData === null) return 0;
-                return currentData + 1;
-            });
-            
-            if (!result.committed) {
-                throw new Error('Transaction not committed');
-            }
-            
-            let counter = result.snapshot.val();
-            if (counter === null || counter === 0) {
-                await set(counterRef, 1);
-                counter = 1;
-            }
-            
-            const orderNumber = String(counter).padStart(3, '0');
-            state.currentOrderNumber = orderNumber;
-            document.getElementById('orderNumber').textContent = orderNumber;
-            saveState();
-            
-            console.log(`📋 Order #${orderNumber} (Day ${today}) - Counter: ${counter}`);
-            return orderNumber;
-            
-        } catch (error) {
-            console.error('❌ Firebase error:', error);
-            showStatus('⚠️ មិនអាចបង្កើតលេខបញ្ជាទិញ, សូមពិនិត្យ internet', 'error');
-            
-            // Fallback to localStorage
-            const localKey = 'hotpotLocalCounter';
-            let counter = parseInt(localStorage.getItem(localKey) || '0');
-            counter++;
-            localStorage.setItem(localKey, String(counter));
-            
-            const orderNumber = String(counter).padStart(3, '0');
-            state.currentOrderNumber = orderNumber;
-            document.getElementById('orderNumber').textContent = orderNumber;
-            saveState();
-            
-            console.log(`📋 Using local fallback: #${orderNumber}`);
-            return orderNumber;
-        }
-    }
+async function generateOrderNumber() {
+    // Generate timestamp-based order number
+    const now = new Date();
+    const year = String(now.getFullYear()).slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    // Format: YYMMDD-HHMMSS (e.g., 260723-162744)
+    const orderNumber = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+    
+    state.currentOrderNumber = orderNumber;
+    document.getElementById('orderNumber').textContent = orderNumber;
+    saveState();
+    
+    console.log(`📋 Order #${orderNumber}`);
+    return orderNumber;
+}
 
     function toggleItem(element) {
         if (state.mode === 'admin') return;
@@ -1313,22 +1267,23 @@ document.addEventListener('keydown', function(e) {
     const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
     const CHAT_ID = '-5362955848';
 
-    window.confirmOrder = async function() {
-        const order = state.currentOrder;
-        if (!order) { showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error'); return; }
+window.confirmOrder = async function() {
+    const order = state.currentOrder;
+    if (!order) { showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error'); return; }
 
-        const confirmBtn = document.querySelector('#receiptModal .btn-confirm');
-        if (confirmBtn) { confirmBtn.textContent = '⏳ កំពុងផ្ញើ...'; confirmBtn.disabled = true; }
+    const confirmBtn = document.getElementById('confirmOrderBtn');
+    if (confirmBtn) { confirmBtn.textContent = '⏳ កំពុងផ្ញើ...'; confirmBtn.disabled = true; }
 
-        const now = new Date();
-        const timeStr = now.toLocaleString('km-KH');
-        const orderNumber = order.number;
-        const orderItems = order.items.map(item => `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
-        const message = `🍲 *ការបញ្ជាទិញថ្មី!*\n\n📋 *លេខបញ្ជាទិញ:* #${orderNumber}\n📦 *ប្រភេទ:* ${order.type}\n🕐 *ម៉ោង:* ${timeStr}\n\n📝 *មុខម្ហូប:*\n${orderItems}\n\n💰 *សរុប:* ៛${order.total.toLocaleString()}\n${order.instructions ? `\n📌 *កំណត់ចំណាំ:* ${order.instructions}` : ''}\n\n👨‍🍳 *សូមរៀបចំម្ហូប!*`;
+    const now = new Date();
+    const timeStr = now.toLocaleString('km-KH');
+    const orderNumber = order.number;
+    const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
+    
+    // 🔥 REMOVED Order Number from message
+    const message = `🍲 *ការបញ្ជាទិញថ្មី!*\n\n📦 *ប្រភេទ:* ${order.type}\n🕐 *ម៉ោង:* ${timeStr}\n\n📝 *មុខម្ហូប:*\n${orderItems}\n\n💰 *សរុប:* ៛${order.total.toLocaleString()}\n${order.instructions ? `\n📌 *កំណត់ចំណាំ:* ${order.instructions}` : ''}\n\n👨‍🍳 *សូមរៀបចំម្ហូប!*`;
 
-        await sendToTelegram(message, confirmBtn);
-    };
-
+    await sendToTelegram(message, confirmBtn);
+};
     function sendToTelegram(message, confirmBtn) {
         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
