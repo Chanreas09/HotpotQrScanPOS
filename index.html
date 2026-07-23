@@ -1276,42 +1276,49 @@ window.confirmOrder = async function() {
 
     const now = new Date();
     const timeStr = now.toLocaleString('km-KH');
-    const orderNumber = order.number;
     const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
     
-    // 🔥 REMOVED Order Number from message
-    const message = `🍲 *ការបញ្ជាទិញថ្មី!*\n\n📦 *ប្រភេទ:* ${order.type}\n🕐 *ម៉ោង:* ${timeStr}\n\n📝 *មុខម្ហូប:*\n${orderItems}\n\n💰 *សរុប:* ៛${order.total.toLocaleString()}\n${order.instructions ? `\n📌 *កំណត់ចំណាំ:* ${order.instructions}` : ''}\n\n👨‍🍳 *សូមរៀបចំម្ហូប!*`;
+    // 🔥 Using HTML formatting with parse_mode: 'HTML'
+    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
 
     await sendToTelegram(message, confirmBtn);
 };
-    function sendToTelegram(message, confirmBtn) {
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.ok) { handleTelegramSuccess(confirmBtn); }
-            else { sendViaProxy(message, confirmBtn); }
-        })
-        .catch(() => { sendViaProxy(message, confirmBtn); });
-    }
 
-    function sendViaProxy(message, confirmBtn) {
-        fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Origin': 'https://chanreas09.github.io' },
-            body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
+function sendToTelegram(message, confirmBtn) {
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            chat_id: CHAT_ID, 
+            text: message, 
+            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.ok) { handleTelegramSuccess(confirmBtn); }
-            else { manualTelegramSend(message, confirmBtn); }
-        })
-        .catch(() => { manualTelegramSend(message, confirmBtn); });
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) { handleTelegramSuccess(confirmBtn); }
+        else { sendViaProxy(message, confirmBtn); }
+    })
+    .catch(() => { sendViaProxy(message, confirmBtn); });
+}
 
+function sendViaProxy(message, confirmBtn) {
+    fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Origin': 'https://chanreas09.github.io' },
+        body: JSON.stringify({ 
+            chat_id: CHAT_ID, 
+            text: message, 
+            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) { handleTelegramSuccess(confirmBtn); }
+        else { manualTelegramSend(message, confirmBtn); }
+    })
+    .catch(() => { manualTelegramSend(message, confirmBtn); });
+}
 function manualTelegramSend(message, confirmBtn) {
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
