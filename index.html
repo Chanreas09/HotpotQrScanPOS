@@ -1862,6 +1862,10 @@ function toggleItem(element) {
         // ============================================
 
         document.getElementById('placeOrderBtn').addEventListener('click', async function() {
+            // 🔍 DEBUG: Log the current order type
+            console.log('📦 Order button clicked, state.orderType:', state.orderType);
+            console.log('📦 Full state:', state);
+
             if (state.mode === 'admin') {
                 showStatus('សូមប្តូរទៅរបៀបអតិថិជនដើម្បីដាក់ការបញ្ជាទិញ', 'error');
                 return;
@@ -1876,26 +1880,39 @@ function toggleItem(element) {
             this.disabled = true;
             this.textContent = '⏳ កំពុងដំណើរការ...';
 
-const orderNumber = await generateOrderNumber(); // "001", "002", "003"
-const order = {
-    number: orderNumber,
-    type: state.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ',
-    items: items.map(item => ({
-        name: item.name,
-        price: item.price,
-        qty: item.qty
-    })),
-    total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
-    instructions: document.getElementById('instructions').value,
-    timestamp: new Date().toISOString(),
-    status: 'pending'
-};          
+            const orderNumber = await generateOrderNumber(); // "001", "002", "003"
+            console.log('📋 Order number generated:', orderNumber);
 
-state.orderHistory.push(order);
-state.currentOrder = order;
-saveState();
+            // ✅ Ensure orderType is set with fallback
+            const orderTypeDisplay = state.orderType === 'Here' ? 'ញុាំទីនេះ' : 
+                                     state.orderType === 'Take Away' ? 'ច្រកទៅផ្ទះ' : 
+                                     'ញុាំទីនេះ'; // Default fallback
+            
+            console.log('📦 Final order type:', orderTypeDisplay);
+            console.log('📦 state.orderType value:', state.orderType);
 
-showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
+            const order = {
+                number: orderNumber,
+                type: orderTypeDisplay,
+                items: items.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    qty: item.qty
+                })),
+                total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
+                instructions: document.getElementById('instructions').value,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            console.log('📦 Final order object:', order);
+
+            state.orderHistory.push(order);
+            state.currentOrder = order;
+            saveState();
+
+            showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
+            
             setTimeout(() => {
                 showReceipt(order);
             }, 500);
@@ -1907,20 +1924,20 @@ showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់�
             }, 1000);
         });
 
-async function resetOrder() {
-    document.querySelectorAll('.menu-item.selected').forEach(item => {
-        item.classList.remove('selected');
-    });
-    state.items = {};
-    document.getElementById('instructions').value = '';
-    updateSummary();
-    
-    state.currentOrderNumber = null;
-    await generateOrderNumber();
-    saveState();
-}
+        async function resetOrder() {
+            document.querySelectorAll('.menu-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+            state.items = {};
+            document.getElementById('instructions').value = '';
+            updateSummary();
+            
+            state.currentOrderNumber = null;
+            await generateOrderNumber();
+            saveState();
+        }
 
-function showStatus(message, type) {
+        function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
             statusDiv.className = `status ${type}`;
@@ -1930,7 +1947,6 @@ function showStatus(message, type) {
                 statusDiv.style.display = 'none';
             }, 4000);
         }
-
         // ============================================
         // ADMIN FUNCTIONS
         // ============================================
@@ -2364,6 +2380,7 @@ function selectOrderType(element) {
 }
 
 function confirmOrderType() {
+     console.log('🔄 confirmOrderType called, selectedOrderType:', selectedOrderType);
     if (!selectedOrderType) {
         showStatus('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!', 'error');
         return;
@@ -2388,6 +2405,9 @@ function confirmOrderType() {
     
     // Show the main content
     document.getElementById('mainContent').classList.remove('main-content-hidden');
+    
+    // ✅ Save state
+    saveState();
     
     showStatus(`✅ បានជ្រើសរើស: ${selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ'}`, 'success');
 }
