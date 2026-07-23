@@ -26,10 +26,13 @@
             font-family: 'Khmer OS', 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
             padding: 16px;
             animation: fadeIn 0.5s ease;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -45,15 +48,42 @@
             50% { transform: scale(1.05); }
         }
 
-        .container {
+        /* APP WRAPPER - Centers everything */
+        .app-wrapper {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* APP CARD - The phone-like card */
+        .app-card {
+            width: 100%;
             max-width: 480px;
-            margin: 0 auto;
+            max-height: 98vh;
             background: white;
             border-radius: var(--radius);
             padding: 20px;
             box-shadow: var(--shadow);
+            overflow-y: auto;
             position: relative;
-            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Hide scrollbar for cleaner look */
+        .app-card::-webkit-scrollbar {
+            width: 4px;
+        }
+        .app-card::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 12px;
+        }
+
+        /* Your existing container - now just holds content */
+        .container {
+            position: relative;
+            /* Remove max-width, margin, padding, shadow, border-radius */
         }
 
         /* Admin Mode Toggle */
@@ -910,57 +940,124 @@
             box-shadow: 0 6px 24px rgba(52, 73, 94, 0.5);
         }
 
-        /* Responsive */
-        @media (max-width: 480px) {
-            .container {
-                padding: 16px;
-            }
+/* Responsive - Mobile First */
+@media (max-width: 480px) {
+    .app-card {
+        padding: 16px;
+        border-radius: 16px;
+        max-height: 96vh;
+    }
 
-            .menu-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
+    .menu-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
 
-            .menu-item {
-                padding: 10px 6px;
-                font-size: 13px;
-            }
+    .menu-item {
+        padding: 10px 6px;
+        font-size: 13px;
+    }
 
-            .header h1 {
-                font-size: 22px;
-            }
+    .header h1 {
+        font-size: 22px;
+    }
 
-            .option-item {
-                padding: 8px 14px;
-                font-size: 13px;
-            }
+    .option-item {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
 
-            .admin-add-row {
-                flex-direction: column;
-            }
+    .admin-add-row {
+        flex-direction: column;
+    }
 
-            .admin-add-row input,
-            .admin-add-row select {
-                min-width: 100%;
-                max-width: 100%;
-            }
+    .admin-add-row input,
+    .admin-add-row select {
+        min-width: 100%;
+        max-width: 100%;
+    }
 
-            .admin-add-row input[type="number"] {
-                max-width: 100%;
-            }
+    .admin-add-row input[type="number"] {
+        max-width: 100%;
+    }
 
-            .fab {
-                bottom: 12px;
-                right: 12px;
-            }
+    .fab {
+        bottom: 12px;
+        right: 12px;
+    }
 
-            .fab-btn {
-                width: 48px;
-                height: 48px;
-                font-size: 20px;
-            }
-        }
+    .fab-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+}
 
+/* Very small phones */
+@media (max-width: 360px) {
+    .app-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    
+    .menu-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+    }
+    
+    .menu-item {
+        padding: 8px 4px;
+        font-size: 12px;
+        min-height: 60px;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+    }
+}
+
+/* Landscape mode on phones */
+@media (max-height: 500px) and (orientation: landscape) {
+    .app-card {
+        max-height: 94vh;
+        padding: 12px;
+    }
+    
+    .menu-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+    }
+    
+    .header {
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+    
+    .option-group {
+        padding: 8px 10px;
+        margin-bottom: 8px;
+    }
+}
+
+/* Tablets and small desktops */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .app-card {
+        max-width: 520px;
+        padding: 24px;
+    }
+}
+
+/* Large desktops - slightly bigger card */
+@media (min-width: 1400px) {
+    .app-card {
+        max-width: 560px;
+        padding: 28px;
+        border-radius: 24px;
+    }
+}
         @media print {
             .no-print { display: none !important; }
             .container { box-shadow: none; }
@@ -1035,10 +1132,25 @@
     border-radius: 20px;
     padding: 30px 24px;
     max-width: 400px;
-    width: 90%;
+    width: 92%;
     text-align: center;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: slideIn 0.4s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 360px) {
+    .order-type-popup {
+        padding: 20px 16px;
+    }
+    .order-type-popup h2 {
+        font-size: 22px;
+    }
+    .order-type-option {
+        padding: 14px 12px;
+        font-size: 16px;
+    }
 }
 
 .order-type-popup h2 {
@@ -1135,9 +1247,9 @@
     </style>
 </head>
 <body>
-<!-- ============================================
-     ORDER TYPE SELECTION POPUP
-     ============================================ -->
+    <!-- ============================================
+         ORDER TYPE SELECTION POPUP
+         ============================================ -->
 <div class="order-type-overlay" id="orderTypeOverlay">
     <div class="order-type-popup">
         <h2>🍲 ស្វាគមន៍!</h2>
@@ -1161,15 +1273,18 @@
         </button>
     </div>
 </div>
-<div class="main-content-hidden" id="mainContent">   
-<div class="container" id="appContainer">
-  <!-- Admin Toggle - Hidden, password protected -->
-<div class="admin-toggle no-print" id="adminToggle" style="display:none;">
-    <button class="active" id="customerMode" onclick="setMode('customer')">👤 អតិថិជន</button>
-    <button id="adminMode" onclick="setMode('admin')">🔧 អ្នកគ្រប់គ្រង</button>
-</div>
-</div>
-        <!-- Admin Banner -->
+<div class="main-content-hidden" id="mainContent">
+    <!-- APP WRAPPER - This centers everything -->
+    <div class="app-wrapper">
+        <!-- APP CARD - This is your app -->
+        <div class="app-card">
+            <div class="container" id="appContainer">
+                <!-- Admin Toggle - Hidden, password protected -->
+                <div class="admin-toggle no-print" id="adminToggle" style="display:none;">
+                    <button class="active" id="customerMode" onclick="setMode('customer')">👤 អតិថិជន</button>
+                    <button id="adminMode" onclick="setMode('admin')">🔧 អ្នកគ្រប់គ្រង</button>
+                </div>
+                <!-- Admin Banner -->
         <div class="admin-banner" id="adminBanner">🔧 របៀបអ្នកគ្រប់គ្រង - កែប្រែម៉ឺនុយ</div>
 
         <!-- Header -->
@@ -1240,14 +1355,16 @@
         <button class="btn-primary" id="placeOrderBtn">📤 ដាក់ការបញ្ជាទិញ</button>
         <!-- <button class="btn-secondary" id="viewHistoryBtn">📜 ប្រវត្តិការបញ្ជាទិញ</button> -->
          <div id="status" class="status"></div>
-    </div>
-<div id="status" class="status"></div>
+                </div> <!-- end container -->
+        </div> <!-- end app-card -->
+    </div> <!-- end app-wrapper -->
+    <div id="status" class="status"></div>
 
-<!-- Hidden Admin Login Trigger - Tap 3 times to access -->
-<div id="adminLoginTrigger" style="height:30px;cursor:pointer;opacity:0.2;text-align:center;font-size:12px;color:#999;user-select:none;padding:10px 0;margin-top:10px;border-top:1px solid #eee;" onclick="triggerAdminLogin()">
-    ⋮ ⋮ ⋮
-</div>
-</div>
+    <!-- Hidden Admin Login Trigger - Tap 3 times to access -->
+    <div id="adminLoginTrigger" style="height:30px;cursor:pointer;opacity:0.2;text-align:center;font-size:12px;color:#999;user-select:none;padding:10px 0;margin-top:10px;border-top:1px solid #eee;" onclick="triggerAdminLogin()">
+        ⋮ ⋮ ⋮
+    </div>
+</div> <!-- end mainContent -->
 <!-- Floating Action Buttons -->
 <!-- <div class="fab no-print">
     <button class="fab-btn secondary" onclick="clearAll()" title="លុបទាំងអស់">🗑️</button>
