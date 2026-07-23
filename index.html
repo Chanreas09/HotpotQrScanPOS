@@ -1291,12 +1291,11 @@
         <div class="header">
             <h1>🍲 ហតផត & អាហារសម្រន់</h1>
             <div class="subtitle">បញ្ជាទិញ ងាយស្រួល រហ័ស</div>
-            <div class="order-number-container">
-                <span class="order-label">លេខបញ្ជាទិញ #</span>
-                <span class="order-number" id="orderNumber">0000</span>
-                <span class="badge-new">ថ្មី</span>
-            </div>
-        </div>
+<div class="order-number-container">
+    <span class="order-label">លេខបញ្ជាទិញ</span>
+    <span class="order-number" id="orderNumber" style="font-size:16px;">---</span>
+    <span class="badge-new">ថ្មី</span>
+</div>        </div>
 
         <!-- Order Type - Now handled by popup -->
         <!-- <div class="option-group">
@@ -1458,17 +1457,17 @@
         // ============================================
 
         let menuData = { categories: [], items: [] };
-        let state = {
-            orderNumber: 0,
-            orderType: 'Here',
-            items: {},
-            orderHistory: [],
-            currentOrder: null,
-            mode: 'customer',
-            editingItemId: null,
-            lastOrderDate: new Date().toDateString()  // ← Add this line
-        };
-
+let state = {
+    orderNumber: 0,  // Keep for legacy, but won't be used for display
+    currentOrderNumber: null,  // New field for time-based number
+    orderType: 'Here',
+    items: {},
+    orderHistory: [],
+    currentOrder: null,
+    mode: 'customer',
+    editingItemId: null,
+    lastOrderDate: new Date().toDateString()
+};
         function loadMenu() {
             try {
                 const saved = localStorage.getItem('hotpotMenuData');
@@ -1509,10 +1508,12 @@ function loadState() {
                 // New day! Reset order number to 0 (will become 1 on next order)
                 state.orderNumber = 0;
                 state.lastOrderDate = today;
+                state.currentOrderNumber = null;  // Clear old order number
                 console.log('📅 New day! Order number reset to 0');
             } else {
                 state.orderNumber = parsed.orderNumber || 0;
                 state.lastOrderDate = parsed.lastOrderDate || today;
+                state.currentOrderNumber = parsed.currentOrderNumber || null;  // Load saved number
             }
             
             state.orderHistory = parsed.orderHistory || [];
@@ -1521,12 +1522,14 @@ function loadState() {
             state.orderNumber = 0;
             state.lastOrderDate = new Date().toDateString();
             state.orderHistory = [];
+            state.currentOrderNumber = null;
         }
     } catch (e) {
         console.warn('Failed to load state:', e);
         state.orderNumber = 0;
         state.lastOrderDate = new Date().toDateString();
         state.orderHistory = [];
+        state.currentOrderNumber = null;
     }
 }
 
@@ -1534,6 +1537,7 @@ function saveState() {
     try {
         localStorage.setItem('hotpotOrderState', JSON.stringify({
             orderNumber: state.orderNumber,
+            currentOrderNumber: state.currentOrderNumber,  // ADD THIS LINE
             orderHistory: state.orderHistory,
             lastOrderDate: state.lastOrderDate || new Date().toDateString()
         }));
@@ -1650,23 +1654,33 @@ function saveState() {
         // ORDER FUNCTIONS
         // ============================================
 
-      function generateOrderNumber() {
-    // Check if we need to reset for new day
-    const today = new Date().toDateString();
-    if (state.lastOrderDate !== today) {
-        state.orderNumber = 0;
-        state.lastOrderDate = today;
-        console.log('📅 New day! Order number reset to 0');
+function generateOrderNumber() {
+    // Check if we already have a saved order number
+    if (state.currentOrderNumber) {
+        document.getElementById('orderNumber').textContent = state.currentOrderNumber;
+        return state.currentOrderNumber;
     }
     
-    state.orderNumber++;
-    const num = String(state.orderNumber).padStart(4, '0');
-    document.getElementById('orderNumber').textContent = num;
+    // Get today's date as key
+    const now = new Date();
+    const today = now.toDateString(); // "Fri Jul 24 2026"
+    
+    // Get counter from localStorage
+    const counterKey = `orderCounter_${today}`;
+    let counter = parseInt(localStorage.getItem(counterKey) || '0');
+    counter++;
+    localStorage.setItem(counterKey, String(counter));
+    
+    // Format: 001, 002, 003... up to 999 per day
+    const orderNumber = String(counter).padStart(3, '0');
+    
+    state.currentOrderNumber = orderNumber;
+    document.getElementById('orderNumber').textContent = orderNumber;
     saveState();
-    return num;
-}
-
-        function toggleItem(element) {
+    
+    console.log(`📋 Order #${orderNumber} (Day ${today})`);
+    return orderNumber;
+}        function toggleItem(element) {
             if (state.mode === 'admin') return;
             const id = element.dataset.id;
 
@@ -1809,21 +1823,21 @@ function saveState() {
             this.disabled = true;
             this.textContent = '⏳ កំពុងដំណើរការ...';
 
-            const orderNumber = generateOrderNumber();
-            const order = {
-                number: orderNumber,
-                type: state.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ',
-                items: items.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    qty: item.qty
-                })),
-                total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
-                instructions: document.getElementById('instructions').value,
-                timestamp: new Date().toISOString(),
-                status: 'pending'
-            };
-
+const orderNumber = generateOrderNumber();  // Now returns time-based string
+const order = {
+    number: orderNumber,  // e.g., "240723-143025-042"
+    type: state.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ',
+    items: items.map(item => ({
+        name: item.name,
+        price: item.price,
+        qty: item.qty
+    })),
+    total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
+    instructions: document.getElementById('instructions').value,
+    timestamp: new Date().toISOString(),
+    status: 'pending',
+    displayNumber: orderNumber  // Store for display
+};
             state.orderHistory.push(order);
             state.currentOrder = order;
             saveState();
@@ -1841,16 +1855,19 @@ function saveState() {
             }, 1000);
         });
 
-        function resetOrder() {
-            document.querySelectorAll('.menu-item.selected').forEach(item => {
-                item.classList.remove('selected');
-            });
-            state.items = {};
-            document.getElementById('instructions').value = '';
-            updateSummary();
-            saveState();
-        }
-
+function resetOrder() {
+    document.querySelectorAll('.menu-item.selected').forEach(item => {
+        item.classList.remove('selected');
+    });
+    state.items = {};
+    document.getElementById('instructions').value = '';
+    updateSummary();
+    
+    // Generate a new order number for the next order
+    state.currentOrderNumber = null;  // Clear the old number
+    generateOrderNumber();  // Generate a new one
+    saveState();
+}
         function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
@@ -2324,21 +2341,24 @@ function confirmOrderType() {
         // INITIALIZATION
         // ============================================
 
-        // First, show the popup and hide main content
-    document.getElementById('mainContent').classList.add('main-content-hidden');
-    // The popup is visible by default
-        loadMenu();
-        loadState();
+// First, show the popup and hide main content
+document.getElementById('mainContent').classList.add('main-content-hidden');
+// The popup is visible by default
+loadMenu();
+loadState();
 
-        if (state.orderNumber === 0) {
-            generateOrderNumber();
-        } else {
-            document.getElementById('orderNumber').textContent =
-                String(state.orderNumber).padStart(4, '0');
-        }
+// Check if we have a saved order number
+if (state.currentOrderNumber) {
+    // Use the saved number
+    document.getElementById('orderNumber').textContent = state.currentOrderNumber;
+    console.log('📋 Restored order number:', state.currentOrderNumber);
+} else {
+    // Generate a new one
+    generateOrderNumber();
+}
 
-        renderMenu();
-        setMode('customer');
+renderMenu();
+setMode('customer');
 
         console.log('🍲 ប្រព័ន្ធបញ្ជាទិញហតផត');
         console.log('📊 ម៉ឺនុយ:', menuData.items.length, 'មុខ');
@@ -2354,6 +2374,7 @@ function confirmOrderType() {
         // 🔧 IMPORTANT: Replace these with your actual bot token and chat ID
 const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
 const CHAT_ID = '-5362955848';
+
 function confirmOrder() {
     const order = state.currentOrder;
     if (!order) {
@@ -2367,22 +2388,19 @@ function confirmOrder() {
         confirmBtn.disabled = true;
     }
 
-    // 🔥 Create unique order reference with timestamp
     const now = new Date();
     const timeStr = now.toLocaleString('km-KH');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const uniqueRef = `${order.number}-${hours}${minutes}${seconds}`;
+    
+    // Use the short order number (001, 002, 003...)
+    const shortNumber = order.number;
 
-    // Format order for Telegram with BOLD formatting
     const orderItems = order.items.map(item => 
         `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`
     ).join('\n');
 
     const message = `🍲 *ការបញ្ជាទិញថ្មី!*
 
-📋 *លេខបញ្ជាទិញ:* #${uniqueRef}
+📋 *លេខបញ្ជាទិញ:* #${shortNumber}
 📦 *ប្រភេទ:* ${order.type}
 🕐 *ម៉ោង:* ${timeStr}
 
@@ -2395,7 +2413,6 @@ ${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructi
 
 👨‍🍳 *សូមរៀបចំម្ហូប!*`;
 
-    // Try to send via Telegram
     sendToTelegram(message, confirmBtn);
 }
 
