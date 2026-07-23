@@ -1653,34 +1653,30 @@ function saveState() {
         // ============================================
         // ORDER FUNCTIONS
         // ============================================
-
 function generateOrderNumber() {
-    // Check if we already have a saved order number
     if (state.currentOrderNumber) {
         document.getElementById('orderNumber').textContent = state.currentOrderNumber;
         return state.currentOrderNumber;
     }
     
-    // Get today's date as key
     const now = new Date();
-    const today = now.toDateString(); // "Fri Jul 24 2026"
     
-    // Get counter from localStorage
-    const counterKey = `orderCounter_${today}`;
-    let counter = parseInt(localStorage.getItem(counterKey) || '0');
-    counter++;
-    localStorage.setItem(counterKey, String(counter));
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const time = hours + minutes + seconds;
     
-    // Format: 001, 002, 003... up to 999 per day
-    const orderNumber = String(counter).padStart(3, '0');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    
+    const orderNumber = `${time}-${random}`;
     
     state.currentOrderNumber = orderNumber;
     document.getElementById('orderNumber').textContent = orderNumber;
     saveState();
     
-    console.log(`📋 Order #${orderNumber} (Day ${today})`);
     return orderNumber;
-}        function toggleItem(element) {
+}
+function toggleItem(element) {
             if (state.mode === 'admin') return;
             const id = element.dataset.id;
 
@@ -1823,9 +1819,9 @@ function generateOrderNumber() {
             this.disabled = true;
             this.textContent = '⏳ កំពុងដំណើរការ...';
 
-const orderNumber = generateOrderNumber();  // Now returns time-based string
+const orderNumber = generateOrderNumber(); // "141533-42"
 const order = {
-    number: orderNumber,  // e.g., "240723-143025-042"
+    number: orderNumber,
     type: state.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ',
     items: items.map(item => ({
         name: item.name,
@@ -1835,15 +1831,12 @@ const order = {
     total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
     instructions: document.getElementById('instructions').value,
     timestamp: new Date().toISOString(),
-    status: 'pending',
-    displayNumber: orderNumber  // Store for display
-};
-            state.orderHistory.push(order);
+    status: 'pending'
+};            state.orderHistory.push(order);
             state.currentOrder = order;
             saveState();
 
-            showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
-
+showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
             setTimeout(() => {
                 showReceipt(order);
             }, 500);
@@ -1864,11 +1857,12 @@ function resetOrder() {
     updateSummary();
     
     // Generate a new order number for the next order
-    state.currentOrderNumber = null;  // Clear the old number
-    generateOrderNumber();  // Generate a new one
+    state.currentOrderNumber = null;
+    generateOrderNumber();
     saveState();
 }
-        function showStatus(message, type) {
+
+function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
             statusDiv.className = `status ${type}`;
@@ -2096,7 +2090,9 @@ function showReceipt(order) {
         <div class="receipt" id="printableReceipt">
             <div class="receipt-header">
                 <h2>🍲 ហតផត & អាហារសម្រន់</h2>
-                <div style="font-size:14px;color:#666;">លេខបញ្ជាទិញ #${orderToShow.number}</div>
+                <div style="font-size:14px;color:#666;">
+    លេខបញ្ជាទិញ #${orderToShow.number}
+</div>
                 <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
                 <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
             </div>
@@ -2347,15 +2343,9 @@ document.getElementById('mainContent').classList.add('main-content-hidden');
 loadMenu();
 loadState();
 
-// Check if we have a saved order number
-if (state.currentOrderNumber) {
-    // Use the saved number
-    document.getElementById('orderNumber').textContent = state.currentOrderNumber;
-    console.log('📋 Restored order number:', state.currentOrderNumber);
-} else {
-    // Generate a new one
-    generateOrderNumber();
-}
+// Generate a fresh order number on load
+// Don't restore old number - every session gets a new unique number
+generateOrderNumber();
 
 renderMenu();
 setMode('customer');
@@ -2391,8 +2381,8 @@ function confirmOrder() {
     const now = new Date();
     const timeStr = now.toLocaleString('km-KH');
     
-    // Use the short order number (001, 002, 003...)
-    const shortNumber = order.number;
+    // Use the full order number
+    const orderNumber = order.number;
 
     const orderItems = order.items.map(item => 
         `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`
@@ -2400,7 +2390,7 @@ function confirmOrder() {
 
     const message = `🍲 *ការបញ្ជាទិញថ្មី!*
 
-📋 *លេខបញ្ជាទិញ:* #${shortNumber}
+📋 *លេខបញ្ជាទិញ:* #${orderNumber}
 📦 *ប្រភេទ:* ${order.type}
 🕐 *ម៉ោង:* ${timeStr}
 
