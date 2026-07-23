@@ -1009,17 +1009,166 @@
             float: right;
             font-weight: 700;
         }
+     /* ============================================
+   ORDER TYPE SELECTION POPUP
+   ============================================ */
+
+/* Overlay - covers the whole screen */
+.order-type-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Popup box */
+.order-type-popup {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.4s ease;
+}
+
+.order-type-popup h2 {
+    color: var(--primary);
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.order-type-popup .subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+/* Order type options */
+.order-type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.order-type-option {
+    padding: 16px 20px;
+    border: 3px solid #e0e0e0;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 18px;
+    font-weight: 600;
+    font-family: inherit;
+    background: white;
+    color: #2c3e50;
+}
+
+.order-type-option:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.order-type-option.selected {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.3);
+}
+
+.order-type-option .option-emoji {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.order-type-option .option-desc {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+/* Confirm button */
+.btn-confirm-order-type {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.btn-confirm-order-type.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-confirm-order-type.active:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+}
+
+/* Hide main content initially */
+.main-content-hidden {
+    display: none !important;
+}   
     </style>
 </head>
 <body>
-
-    <div class="container" id="appContainer">
+<!-- ============================================
+     ORDER TYPE SELECTION POPUP
+     ============================================ -->
+<div class="order-type-overlay" id="orderTypeOverlay">
+    <div class="order-type-popup">
+        <h2>🍲 ស្វាគមន៍!</h2>
+        <div class="subtitle">សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ</div>
+        
+        <div class="order-type-options">
+            <div class="order-type-option" data-value="Here" onclick="selectOrderType(this)">
+                <span class="option-emoji">🏠</span>
+                ញុាំទីនេះ
+                <div class="option-desc">ទទួលទាននៅទីនេះ</div>
+            </div>
+            <div class="order-type-option" data-value="Take Away" onclick="selectOrderType(this)">
+                <span class="option-emoji">🛍️</span>
+                ច្រកទៅផ្ទះ
+                <div class="option-desc">យកទៅផ្ទះ</div>
+            </div>
+        </div>
+        
+        <button class="btn-confirm-order-type" id="confirmOrderTypeBtn" onclick="confirmOrderType()">
+            ✅ យល់ព្រម
+        </button>
+    </div>
+</div>
+<div class="main-content-hidden" id="mainContent">   
+<div class="container" id="appContainer">
   <!-- Admin Toggle - Hidden, password protected -->
 <div class="admin-toggle no-print" id="adminToggle" style="display:none;">
     <button class="active" id="customerMode" onclick="setMode('customer')">👤 អតិថិជន</button>
     <button id="adminMode" onclick="setMode('admin')">🔧 អ្នកគ្រប់គ្រង</button>
 </div>
-
+</div>
         <!-- Admin Banner -->
         <div class="admin-banner" id="adminBanner">🔧 របៀបអ្នកគ្រប់គ្រង - កែប្រែម៉ឺនុយ</div>
 
@@ -1034,8 +1183,8 @@
             </div>
         </div>
 
-        <!-- Order Type -->
-        <div class="option-group">
+        <!-- Order Type - Now handled by popup -->
+        <!-- <div class="option-group">
             <h3>📦 ប្រភេទការបញ្ជាទិញ</h3>
             <label class="option-item active" data-value="Here">
                 <input type="radio" name="orderType" value="Here" checked> 🏠 ញុាំទីនេះ
@@ -1043,8 +1192,7 @@
             <label class="option-item" data-value="Take Away">
                 <input type="radio" name="orderType" value="Take Away"> 🛍️ ច្រកទៅផ្ទះ
             </label>
-        </div>
-
+        </div> -->
         <!-- Menu Container -->
         <div id="menuContainer"></div>
 
@@ -2004,10 +2152,64 @@ function triggerAdminLogin() {
         // If password is null (cancel button), do nothing
     }
 }
+// ============================================
+// ORDER TYPE SELECTION POPUP
+// ============================================
+
+let selectedOrderType = null;
+
+function selectOrderType(element) {
+    // Remove selected class from all options
+    document.querySelectorAll('.order-type-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    element.classList.add('selected');
+    
+    // Store the selected value
+    selectedOrderType = element.dataset.value;
+    
+    // Enable the confirm button
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    confirmBtn.classList.add('active');
+}
+
+function confirmOrderType() {
+    if (!selectedOrderType) {
+        showStatus('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!', 'error');
+        return;
+    }
+    
+    // Set the order type in state
+    state.orderType = selectedOrderType;
+    
+    // Update the radio buttons to match selection
+    document.querySelectorAll('.option-item').forEach(item => {
+        const radio = item.querySelector('input');
+        if (radio && radio.value === selectedOrderType) {
+            item.classList.add('active');
+            radio.checked = true;
+        } else if (radio) {
+            item.classList.remove('active');
+        }
+    });
+    
+    // Hide the popup
+    document.getElementById('orderTypeOverlay').style.display = 'none';
+    
+    // Show the main content
+    document.getElementById('mainContent').classList.remove('main-content-hidden');
+    
+    showStatus(`✅ បានជ្រើសរើស: ${selectedOrderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ'}`, 'success');
+}
         // ============================================
         // INITIALIZATION
         // ============================================
 
+        // First, show the popup and hide main content
+    document.getElementById('mainContent').classList.add('main-content-hidden');
+    // The popup is visible by default
         loadMenu();
         loadState();
 
@@ -2028,7 +2230,7 @@ function triggerAdminLogin() {
         console.log('💡 ចុច Ctrl+Enter ដើម្បីដាក់ការបញ្ជាទិញ');
         console.log('🔧 ចុច "អ្នកគ្រប់គ្រង" ដើម្បីកែប្រែម៉ឺនុយ');
 
-                // ============================================
+        // ============================================
         // TELEGRAM BOT INTEGRATION
         // ============================================
 
