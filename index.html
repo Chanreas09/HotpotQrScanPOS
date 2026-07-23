@@ -1090,8 +1090,8 @@
 
         <!-- Buttons -->
         <button class="btn-primary" id="placeOrderBtn">📤 ដាក់ការបញ្ជាទិញ</button>
-        <button class="btn-secondary" id="viewHistoryBtn">📜 ប្រវត្តិការបញ្ជាទិញ</button>
-        <div id="status" class="status"></div>
+        <!-- <button class="btn-secondary" id="viewHistoryBtn">📜 ប្រវត្តិការបញ្ជាទិញ</button> -->
+         <div id="status" class="status"></div>
     </div>
 <div id="status" class="status"></div>
 
@@ -1100,13 +1100,12 @@
     ⋮ ⋮ ⋮
 </div>
 </div>
-    <!-- Floating Action Buttons -->
-    <div class="fab no-print">
-        <button class="fab-btn secondary" onclick="clearAll()" title="លុបទាំងអស់">🗑️</button>
-        <button class="fab-btn" onclick="showReceipt()" title="មើលបង្កាន់ដៃ">🧾</button>
-        <button class="fab-btn" onclick="resetMenu()" title="កំណត់ម៉ឺនុយឡើងវិញ" style="background:var(--warning);">🔄</button>
-    </div>
-
+<!-- Floating Action Buttons -->
+<!-- <div class="fab no-print">
+    <button class="fab-btn secondary" onclick="clearAll()" title="លុបទាំងអស់">🗑️</button>
+    <button class="fab-btn" onclick="showReceipt()" title="មើលបង្កាន់ដៃ">🧾</button>
+    <button class="fab-btn" onclick="resetMenu()" title="កំណត់ម៉ឺនុយឡើងវិញ" style="background:var(--warning);">🔄</button>
+</div> -->
     <!-- History Modal -->
     <div class="modal-overlay" id="historyModal">
         <div class="modal">
@@ -2049,6 +2048,14 @@ function confirmOrder() {
         confirmBtn.disabled = true;
     }
 
+    // 🔥 Create unique order reference with timestamp
+    const now = new Date();
+    const timeStr = now.toLocaleString('km-KH');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const uniqueRef = `${order.number}-${hours}${minutes}${seconds}`;
+
     // Format order for Telegram with BOLD formatting
     const orderItems = order.items.map(item => 
         `*• ${item.qty}× ${item.name}* = ៛${(item.price * item.qty).toLocaleString()}`
@@ -2056,9 +2063,9 @@ function confirmOrder() {
 
     const message = `🍲 *ការបញ្ជាទិញថ្មី!*
 
-📋 *លេខបញ្ជាទិញ:* #${order.number}
+📋 *លេខបញ្ជាទិញ:* #${uniqueRef}
 📦 *ប្រភេទ:* ${order.type}
-🕐 *ម៉ោង:* ${new Date(order.timestamp).toLocaleString('km-KH')}
+🕐 *ម៉ោង:* ${timeStr}
 
 📝 *មុខម្ហូប:*
 ${orderItems}
@@ -2073,60 +2080,60 @@ ${order.instructions ? `📌 *កំណត់ចំណាំ:* ${order.instructi
     sendToTelegram(message, confirmBtn);
 }
 
-        function sendToTelegram(message, confirmBtn) {
-            // Method 1: Try direct first
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.ok) {
-                    handleTelegramSuccess(confirmBtn);
-                } else {
-                    // Try with proxy
-                    sendViaProxy(message, confirmBtn);
-                }
-            })
-            .catch(() => {
-                // Try with proxy
-                sendViaProxy(message, confirmBtn);
-            });
+function sendToTelegram(message, confirmBtn) {
+    // Method 1: Try direct first
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            handleTelegramSuccess(confirmBtn);
+        } else {
+            // Try with proxy
+            sendViaProxy(message, confirmBtn);
         }
+    })
+    .catch(() => {
+        // Try with proxy
+        sendViaProxy(message, confirmBtn);
+    });
+}
 
-        function sendViaProxy(message, confirmBtn) {
-            // Method 2: Using CORS proxy (most reliable for GitHub Pages)
-            fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Origin': 'https://chanreas09.github.io'
-                },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.ok) {
-                    handleTelegramSuccess(confirmBtn);
-                } else {
-                    // Fallback to manual
-                    manualTelegramSend(message, confirmBtn);
-                }
-            })
-            .catch(() => {
-                // Final fallback: manual
-                manualTelegramSend(message, confirmBtn);
-            });
+function sendViaProxy(message, confirmBtn) {
+    // Method 2: Using CORS proxy (most reliable for GitHub Pages)
+    fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Origin': 'https://chanreas09.github.io'
+        },
+        body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            handleTelegramSuccess(confirmBtn);
+        } else {
+            // Fallback to manual
+            manualTelegramSend(message, confirmBtn);
         }
+    })
+    .catch(() => {
+        // Final fallback: manual
+        manualTelegramSend(message, confirmBtn);
+    });
+}
 
         function manualTelegramSend(message, confirmBtn) {
             // Method 3: Open Telegram with pre-filled message (manual send)
