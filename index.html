@@ -843,6 +843,7 @@ async function generateOrderNumber() {
         updateSummary();
         saveState();
     }
+    window.adjustQty = adjustQty;
 
     function updateQtyDisplay(item, qty) {
         const badge = item.querySelector('.qty-badge');
@@ -900,6 +901,7 @@ async function generateOrderNumber() {
         saveState();
         showStatus('បានលុបមុខម្ហូប', 'info');
     }
+    window.removeItem = removeItem;
 
     function getOrderTypeFromGlobal() {
         const orderType = document.documentElement.dataset.orderType;
