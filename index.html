@@ -278,6 +278,32 @@
         .receipt .receipt-total { border-top: 2px dashed #333; padding-top: 10px; margin-top: 10px; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; }
         .receipt .receipt-footer { text-align: center; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #333; font-size: 12px; color: #666; }
 
+        /* Thank You success screen */
+        @keyframes tyPop { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.15) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+        @keyframes tyRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .thank-you-modal, .order-failed-modal { text-align: center; max-width: 380px; }
+        .thank-you-content, .order-failed-content { padding: 12px 6px 4px; }
+        .ty-icon { font-size: 64px; margin-bottom: 10px; animation: tyPop 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+        .ty-title { color: var(--success); font-size: 26px; font-weight: 800; margin-bottom: 6px; animation: tyRise 0.4s ease 0.15s both; }
+        .ty-subtitle { color: #555; font-size: 14px; margin-bottom: 18px; line-height: 1.5; animation: tyRise 0.4s ease 0.2s both; }
+        .ty-order-box {
+            background: linear-gradient(135deg, #f8f9fa, #eef2f5); border-radius: 16px;
+            padding: 18px; margin-bottom: 18px; border: 2px solid var(--primary-light);
+            animation: tyRise 0.4s ease 0.25s both;
+        }
+        .ty-order-label { font-size: 12px; color: #7f8c8d; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .ty-order-number { font-family: 'Courier New', monospace; font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+        .ty-order-total { font-size: 26px; font-weight: 800; color: var(--success); margin-top: 6px; }
+        .ty-note { font-size: 13px; color: #7f8c8d; margin-bottom: 18px; animation: tyRise 0.4s ease 0.3s both; }
+        .ty-close-btn { background: var(--success); animation: tyRise 0.4s ease 0.35s both; }
+        .ty-close-btn:hover { background: #219150; }
+
+        /* Order Not Sent screen */
+        .of-icon { font-size: 56px; margin-bottom: 12px; animation: pulse 1.4s infinite; }
+        .of-title { color: var(--primary); font-size: 21px; font-weight: 800; margin-bottom: 10px; }
+        .of-subtitle { color: #555; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .of-discard-btn { color: var(--primary) !important; border-color: var(--primary) !important; }
+
         .fab { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
         .fab-btn {
             width: 56px; height: 56px; border-radius: 50%; border: none;
@@ -474,6 +500,37 @@
             <div class="form-group"><label>សញ្ញា</label><input type="text" id="editItemEmoji" maxlength="2" /></div>
             <div class="form-group"><label>ប្រភេទ</label><select id="editItemCategory"></select></div>
             <button class="btn-primary" onclick="saveEditItem()" style="background:var(--info);">💾 រក្សាទុក</button>
+        </div>
+    </div>
+</div>
+
+<!-- Thank You Modal -->
+<div class="modal-overlay" id="thankYouModal">
+    <div class="modal thank-you-modal">
+        <div class="thank-you-content">
+            <div class="ty-icon">✅</div>
+            <h2 class="ty-title">សូមអរគុណ!</h2>
+            <p class="ty-subtitle" id="tySubtitle">ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើដោយជោគជ័យ</p>
+            <div class="ty-order-box">
+                <div class="ty-order-label">លេខបញ្ជាទិញ</div>
+                <div class="ty-order-number" id="tyOrderNumber">#000000</div>
+                <div class="ty-order-total" id="tyOrderTotal">៛0</div>
+            </div>
+            <p class="ty-note">👨‍🍳 សូមរង់ចាំ ម្ហូបរបស់អ្នកកំពុងត្រូវបានរៀបចំ</p>
+            <button class="btn-primary ty-close-btn" onclick="window.closeThankYou()">🍲 ការបញ្ជាទិញថ្មី</button>
+        </div>
+    </div>
+</div>
+
+<!-- Order Not Sent Modal -->
+<div class="modal-overlay" id="orderFailedModal">
+    <div class="modal order-failed-modal">
+        <div class="order-failed-content">
+            <div class="of-icon">⚠️</div>
+            <h2 class="of-title">ការបញ្ជាទិញមិនទាន់បានផ្ញើ!</h2>
+            <p class="of-subtitle">អ្នកមិនទាន់បានចុច "យល់ព្រម" ដើម្បីផ្ញើការបញ្ជាទិញនេះទៅផ្ទះបាយនៅឡើយទេ។</p>
+            <button class="btn-confirm" onclick="window.resumeReceipt()">↩️ ត្រឡប់ទៅចុច "យល់ព្រម"</button>
+            <button class="btn-secondary of-discard-btn" onclick="window.discardOrder()">🗑️ បោះបង់ការបញ្ជាទិញនេះ</button>
         </div>
     </div>
 </div>
@@ -1225,16 +1282,56 @@ async function generateOrderNumber() {
         }
     };
 
+    let tyAutoCloseTimer = null;
+
+    window.showThankYou = function(order, method) {
+        const subtitleEl = document.getElementById('tySubtitle');
+        subtitleEl.textContent = method === 'manual'
+            ? '📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ'
+            : 'ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើដោយជោគជ័យ';
+        document.getElementById('tyOrderNumber').textContent = '#' + order.number;
+        document.getElementById('tyOrderTotal').textContent = '៛' + order.total.toLocaleString();
+        document.getElementById('thankYouModal').classList.add('active');
+        clearTimeout(tyAutoCloseTimer);
+        tyAutoCloseTimer = setTimeout(() => { window.closeThankYou(); }, 4000);
+    };
+
+    window.closeThankYou = function() {
+        clearTimeout(tyAutoCloseTimer);
+        document.getElementById('thankYouModal').classList.remove('active');
+        window.resetToOrderType();
+    };
+
+    window.showOrderFailed = function() {
+        document.getElementById('orderFailedModal').classList.add('active');
+    };
+
+    window.resumeReceipt = function() {
+        document.getElementById('orderFailedModal').classList.remove('active');
+        document.getElementById('receiptModal').classList.add('active');
+    };
+
+    window.discardOrder = function() {
+        document.getElementById('orderFailedModal').classList.remove('active');
+        document.getElementById('receiptModal').classList.remove('active');
+        state.receiptPending = false;
+        if (state.currentOrder) {
+            state.orderHistory = state.orderHistory.filter(o => o.number !== state.currentOrder.number);
+            state.currentOrder = null;
+            saveState();
+        }
+        showStatus('បានបោះបង់ការបញ្ជាទិញនេះ', 'info');
+        window.resetToOrderType();
+    };
+
     window.closeModal = function(id) {
         if (id === 'receiptModal' && state.receiptPending) {
-            const stillClose = confirm(
-                '⚠️ ការបញ្ជាទិញនេះមិនទាន់បានផ្ញើទៅផ្ទះបាយនៅឡើយទេ!\n\n' +
-                'ចុច "Cancel" ដើម្បីត្រឡប់ទៅចុច "យល់ព្រម" ជាមុនសិន។\n' +
-                'ចុច "OK" ប្រសិនបើអ្នកចង់បិទដោយមិនផ្ញើការបញ្ជាទិញនេះ។'
-            );
-            if (!stillClose) return;
-            state.receiptPending = false;
+            document.getElementById('receiptModal').classList.remove('active');
+            window.showOrderFailed();
+            return;
         }
+        if (id === 'thankYouModal') { window.closeThankYou(); return; }
+        if (id === 'orderFailedModal') { window.resumeReceipt(); return; }
         document.getElementById(id).classList.remove('active');
     };
 
@@ -1337,27 +1434,17 @@ function sendViaProxy(message, confirmBtn) {
 function manualTelegramSend(message, confirmBtn) {
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
-    showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
     state.receiptPending = false;
-    closeModal('receiptModal');
+    document.getElementById('receiptModal').classList.remove('active');
     if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
-    
-    // 🔥 RESET after manual send
-    setTimeout(() => {
-        window.resetToOrderType();
-    }, 1500);
+    window.showThankYou(state.currentOrder, 'manual');
 }
 
 function handleTelegramSuccess(confirmBtn) {
-    showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
     state.receiptPending = false;
-    closeModal('receiptModal');
+    document.getElementById('receiptModal').classList.remove('active');
     if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
-    
-    // 🔥 RESET after successful send
-    setTimeout(() => {
-        window.resetToOrderType();
-    }, 1500);
+    window.showThankYou(state.currentOrder, 'auto');
 }
     // ============================================
     // KEYBOARD SHORTCUTS
