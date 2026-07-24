@@ -957,7 +957,7 @@ async function generateOrderNumber() {
         showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
         
         setTimeout(() => {
-            window.showReceipt(order);
+            window.showReceipt(order, true);
         }, 500);
 
         setTimeout(() => {
@@ -1134,7 +1134,7 @@ async function generateOrderNumber() {
     // RECEIPT & HISTORY
     // ============================================
 
-    window.showReceipt = function(order) {
+    window.showReceipt = function(order, requireConfirmation) {
         const modal = document.getElementById('receiptModal');
         const content = document.getElementById('receiptContent');
         const orderToShow = order || state.currentOrder;
@@ -1142,6 +1142,10 @@ async function generateOrderNumber() {
             showStatus('មិនមានការបញ្ជាទិញដើម្បីបង្ហាញបង្កាន់ដៃ', 'error');
             return;
         }
+        // Track whether this receipt still needs to be sent to the kitchen.
+        // Only fresh orders (placed just now) require this; viewing an old
+        // receipt from history should not trigger the warning.
+        state.receiptPending = !!requireConfirmation;
         const date = new Date(orderToShow.timestamp);
         const itemsHtml = orderToShow.items.map(item => `
             <div class="receipt-item"><span>${item.qty}× ${item.name}</span><span>៛${(item.price * item.qty).toLocaleString()}</span></div>
@@ -1222,12 +1226,21 @@ async function generateOrderNumber() {
     };
 
     window.closeModal = function(id) {
+        if (id === 'receiptModal' && state.receiptPending) {
+            const stillClose = confirm(
+                '⚠️ ការបញ្ជាទិញនេះមិនទាន់បានផ្ញើទៅផ្ទះបាយនៅឡើយទេ!\n\n' +
+                'ចុច "Cancel" ដើម្បីត្រឡប់ទៅចុច "យល់ព្រម" ជាមុនសិន។\n' +
+                'ចុច "OK" ប្រសិនបើអ្នកចង់បិទដោយមិនផ្ញើការបញ្ជាទិញនេះ។'
+            );
+            if (!stillClose) return;
+            state.receiptPending = false;
+        }
         document.getElementById(id).classList.remove('active');
     };
 
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
+            if (e.target === this) window.closeModal(this.id);
         });
     });
 
@@ -1325,6 +1338,7 @@ function manualTelegramSend(message, confirmBtn) {
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
     showStatus('📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ', 'info');
+    state.receiptPending = false;
     closeModal('receiptModal');
     if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
     
@@ -1336,6 +1350,7 @@ function manualTelegramSend(message, confirmBtn) {
 
 function handleTelegramSuccess(confirmBtn) {
     showStatus('✅ បានផ្ញើទៅកាន់ផ្ទះបាយដោយជោគជ័យ!', 'success');
+    state.receiptPending = false;
     closeModal('receiptModal');
     if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
     
@@ -1350,7 +1365,7 @@ function handleTelegramSuccess(confirmBtn) {
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.modal-overlay.active').forEach(el => window.closeModal(el.id));
         }
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             document.getElementById('placeOrderBtn').click();
