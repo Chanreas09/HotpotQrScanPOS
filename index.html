@@ -1376,8 +1376,8 @@ async function generateOrderNumber() {
     // TELEGRAM BOT
     // ============================================
 
-    const BOT_TOKEN = '8812820781:AAH-VdWYStzKtB48zRxkUApbe9rOpFzAgk0';
-    const CHAT_ID = '-5362955848';
+    // Bot token and chat ID now live ONLY on the server (Vercel env vars),
+    // never in this file, so they can't be viewed or stolen from the browser.
 
 window.confirmOrder = async function() {
     const order = state.currentOrder;
@@ -1390,39 +1390,16 @@ window.confirmOrder = async function() {
     const timeStr = now.toLocaleString('km-KH');
     const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
     
-    // 🔥 Using HTML formatting with parse_mode: 'HTML'
     const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
 
     await sendToTelegram(message, confirmBtn);
 };
 
 function sendToTelegram(message, confirmBtn) {
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    fetch('/api/send-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            chat_id: CHAT_ID, 
-            text: message, 
-            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.ok) { handleTelegramSuccess(confirmBtn); }
-        else { sendViaProxy(message, confirmBtn); }
-    })
-    .catch(() => { sendViaProxy(message, confirmBtn); });
-}
-
-function sendViaProxy(message, confirmBtn) {
-    fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Origin': 'https://chanreas09.github.io' },
-        body: JSON.stringify({ 
-            chat_id: CHAT_ID, 
-            text: message, 
-            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
-        })
+        body: JSON.stringify({ message })
     })
     .then(response => response.json())
     .then(data => {
@@ -1431,8 +1408,12 @@ function sendViaProxy(message, confirmBtn) {
     })
     .catch(() => { manualTelegramSend(message, confirmBtn); });
 }
+
 function manualTelegramSend(message, confirmBtn) {
-    const encodedMessage = encodeURIComponent(message);
+    // Fallback if the server call fails for any reason: opens Telegram
+    // share sheet so the order can still be sent manually.
+    const plainMessage = message.replace(/<[^>]*>/g, '');
+    const encodedMessage = encodeURIComponent(plainMessage);
     window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
     state.receiptPending = false;
     document.getElementById('receiptModal').classList.remove('active');
