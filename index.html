@@ -371,6 +371,19 @@
         }
         .order-type-popup h2 { color: var(--primary); font-size: 24px; margin-bottom: 8px; }
         .order-type-popup .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 24px; }
+        .customer-name-group { text-align: left; margin-bottom: 20px; }
+        .customer-name-group label {
+            display: block; font-size: 13px; font-weight: 700; color: #2c3e50;
+            margin-bottom: 6px;
+        }
+        .customer-name-group label .required-star { color: var(--primary); }
+        #customerNameInput {
+            width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0;
+            border-radius: 12px; font-size: 16px; font-family: inherit;
+            transition: all 0.3s;
+        }
+        #customerNameInput:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(231,76,60,0.1); }
+        #customerNameInput.filled { border-color: var(--success); }
         .order-type-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
         .order-type-option {
             padding: 16px 20px; border: 3px solid #e0e0e0; border-radius: 14px;
@@ -381,6 +394,9 @@
         .order-type-option.selected { border-color: var(--primary); background: var(--primary); color: white; box-shadow: 0 4px 16px rgba(231,76,60,0.3); }
         .order-type-option .option-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
         .order-type-option .option-desc { font-size: 12px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+        .order-type-option.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(0.4); }
+        .name-hint { font-size: 12px; color: var(--primary); margin-top: -14px; margin-bottom: 18px; text-align: left; display: none; }
+        .name-hint.show { display: block; animation: slideIn 0.3s ease; }
         .btn-confirm-order-type {
             width: 100%; padding: 14px; background: var(--primary); color: white;
             border: none; border-radius: 12px; font-size: 18px; font-weight: 700;
@@ -397,13 +413,20 @@
 <div class="order-type-overlay" id="orderTypeOverlay">
     <div class="order-type-popup">
         <h2>🍲 ស្វាគមន៍!</h2>
-        <div class="subtitle">សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ</div>
-        <div class="order-type-options">
-            <div class="order-type-option" data-value="Here" onclick="selectOrderType(this)">
+        <div class="subtitle">សូមបំពេញព័ត៌មាន ដើម្បីចាប់ផ្តើមកម្មង់</div>
+
+        <div class="customer-name-group">
+            <label for="customerNameInput">ឈ្មោះអតិថិជន <span class="required-star">*</span></label>
+            <input type="text" id="customerNameInput" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក..." autocomplete="off" oninput="window.handleNameInput()" />
+        </div>
+        <div class="name-hint" id="nameHint">👆 សូមបញ្ចូលឈ្មោះជាមុនសិន ដើម្បីជ្រើសរើសប្រភេទការបញ្ជាទិញ</div>
+
+        <div class="order-type-options" id="orderTypeOptions">
+            <div class="order-type-option locked" data-value="Here" onclick="selectOrderType(this)">
                 <span class="option-emoji">🏠</span> ញុាំទីនេះ
                 <div class="option-desc">ទទួលទាននៅទីនេះ</div>
             </div>
-            <div class="order-type-option" data-value="Take Away" onclick="selectOrderType(this)">
+            <div class="order-type-option locked" data-value="Take Away" onclick="selectOrderType(this)">
                 <span class="option-emoji">🛍️</span> ច្រកទៅផ្ទះ
                 <div class="option-desc">យកទៅផ្ទះ</div>
             </div>
@@ -540,9 +563,43 @@
      ============================================ -->
 <script>
 window._selectedOrderType = null;
+window._customerName = '';
+
+// Called on every keystroke in the name field.
+// Unlocks the Here/Take Away options only once a name is present.
+window.handleNameInput = function() {
+    const input = document.getElementById('customerNameInput');
+    const options = document.querySelectorAll('#orderTypeOptions .order-type-option');
+    const hint = document.getElementById('nameHint');
+    const name = input.value.trim();
+    window._customerName = name;
+
+    if (name.length > 0) {
+        input.classList.add('filled');
+        options.forEach(opt => opt.classList.remove('locked'));
+        if (hint) hint.classList.remove('show');
+    } else {
+        input.classList.remove('filled');
+        options.forEach(opt => opt.classList.add('locked'));
+        // If a type was already selected, unselect it since name was cleared
+        options.forEach(opt => opt.classList.remove('selected'));
+        window._selectedOrderType = null;
+        const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+        if (confirmBtn) confirmBtn.classList.remove('active');
+    }
+};
 
 // Store the selected order type
 window.selectOrderType = function(element) {
+    // Guard: ignore clicks if name hasn't been entered yet (options are
+    // also visually locked + pointer-events:none, this is a second safety net)
+    const name = document.getElementById('customerNameInput').value.trim();
+    if (!name) {
+        const hint = document.getElementById('nameHint');
+        if (hint) hint.classList.add('show');
+        document.getElementById('customerNameInput').focus();
+        return;
+    }
     document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
     element.classList.add('selected');
     window._selectedOrderType = element.dataset.value;
@@ -553,29 +610,38 @@ window.selectOrderType = function(element) {
 
 // Confirm and show the main app
 window.confirmOrderType = function() {
+    const name = document.getElementById('customerNameInput').value.trim();
+    if (!name) {
+        const hint = document.getElementById('nameHint');
+        if (hint) hint.classList.add('show');
+        document.getElementById('customerNameInput').focus();
+        return;
+    }
     if (!window._selectedOrderType) {
         alert('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!');
         return;
     }
+    window._customerName = name;
+    document.documentElement.dataset.customerName = name;
     document.getElementById('orderTypeOverlay').style.display = 'none';
     document.getElementById('mainContent').classList.remove('main-content-hidden');
     document.documentElement.dataset.orderType = window._selectedOrderType;
-    
-    // Reset the order type selection for next time
+
+    // Reset the order type selection for next time (name is reset separately in resetToOrderType)
     window._selectedOrderType = null;
     document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
     const confirmBtn = document.getElementById('confirmOrderTypeBtn');
     if (confirmBtn) confirmBtn.classList.remove('active');
-    
+
     const typeDisplay = document.documentElement.dataset.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
     const statusDiv = document.getElementById('status');
     if (statusDiv) {
-        statusDiv.textContent = `✅ បានជ្រើសរើស: ${typeDisplay}`;
+        statusDiv.textContent = `✅ ${name} - បានជ្រើសរើស: ${typeDisplay}`;
         statusDiv.className = 'status success';
         statusDiv.style.display = 'block';
         setTimeout(() => statusDiv.style.display = 'none', 3000);
     }
-    console.log('✅ Order type confirmed');
+    console.log('✅ Order type confirmed for', name);
 };
 
 // 🔥 NEW: Reset everything and show the order type popup again
@@ -585,40 +651,51 @@ window.resetToOrderType = function() {
     document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
     const confirmBtn = document.getElementById('confirmOrderTypeBtn');
     if (confirmBtn) confirmBtn.classList.remove('active');
-    
-    // Clear the stored order type
+
+    // Clear the stored order type and customer name
     document.documentElement.dataset.orderType = '';
-    
+    document.documentElement.dataset.customerName = '';
+    window._customerName = '';
+    const nameInput = document.getElementById('customerNameInput');
+    if (nameInput) {
+        nameInput.value = '';
+        nameInput.classList.remove('filled');
+    }
+    document.querySelectorAll('#orderTypeOptions .order-type-option').forEach(opt => opt.classList.add('locked'));
+    const hint = document.getElementById('nameHint');
+    if (hint) hint.classList.remove('show');
+
     // Hide the main content
     document.getElementById('mainContent').classList.add('main-content-hidden');
-    
+
     // Show the popup
     document.getElementById('orderTypeOverlay').style.display = 'flex';
-    
+
     // Reset all selected items
     document.querySelectorAll('.menu-item.selected').forEach(item => item.classList.remove('selected'));
-    
+
     // Clear the order summary
     document.getElementById('summaryGroup').style.display = 'none';
     document.getElementById('orderSummary').innerHTML = '';
     document.getElementById('totalPrice').textContent = '0';
     document.getElementById('itemCount').textContent = '0';
-    
+
     // Clear instructions
     document.getElementById('instructions').value = '';
-    
+
     // Reset state
     state.items = {};
     state.currentOrderNumber = null;
     state.orderType = 'Here';
-    
+    state.customerName = '';
+
     // Generate a fresh order number
     setTimeout(() => {
         if (typeof generateOrderNumber === 'function') {
             generateOrderNumber();
         }
     }, 100);
-    
+
     console.log('🔄 Reset to order type selection');
 };
 
@@ -673,6 +750,7 @@ document.addEventListener('keydown', function(e) {
         orderNumber: 0,
         currentOrderNumber: null,
         orderType: 'Here',
+        customerName: '',
         items: {},
         orderHistory: [],
         currentOrder: null,
@@ -969,6 +1047,8 @@ async function generateOrderNumber() {
             console.warn('⚠️ No order type found, using default: Here');
             state.orderType = 'Here';
         }
+        const customerName = document.documentElement.dataset.customerName;
+        state.customerName = customerName || '';
         return state.orderType;
     }
 
@@ -979,6 +1059,7 @@ async function generateOrderNumber() {
     document.getElementById('placeOrderBtn').addEventListener('click', async function() {
         const orderType = document.documentElement.dataset.orderType || 'Here';
         state.orderType = orderType;
+        state.customerName = document.documentElement.dataset.customerName || '';
 
         if (state.mode === 'admin') {
             showStatus('សូមប្តូរទៅរបៀបអតិថិជនដើម្បីដាក់ការបញ្ជាទិញ', 'error');
@@ -1000,6 +1081,7 @@ async function generateOrderNumber() {
         const order = {
             number: orderNumber,
             type: orderTypeDisplay,
+            customerName: state.customerName,
             items: items.map(item => ({ name: item.name, price: item.price, qty: item.qty })),
             total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
             instructions: document.getElementById('instructions').value,
@@ -1213,6 +1295,7 @@ async function generateOrderNumber() {
                     <h2>🍲 ហតផត & អាហារសម្រន់</h2>
                     <div style="font-size:14px;color:#666;">លេខបញ្ជាទិញ #${orderToShow.number}</div>
                     <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
+                    ${orderToShow.customerName ? `<div style="font-size:14px;font-weight:700;margin-top:4px;">👤 ${orderToShow.customerName}</div>` : ''}
                     <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
                 </div>
                 ${itemsHtml}
@@ -1391,7 +1474,7 @@ window.confirmOrder = async function() {
     const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
     
     // 🔥 Using HTML formatting with parse_mode: 'HTML'
-    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
+    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
 
     await sendToTelegram(message, confirmBtn);
 };
