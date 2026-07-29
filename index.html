@@ -1474,8 +1474,7 @@ window.confirmOrder = async function() {
     const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
     
     // 🔥 Using HTML formatting with parse_mode: 'HTML'
-    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
-
+const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b> @HotpotAutosum_bot\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
     await sendToTelegram(message, confirmBtn);
 };
 
