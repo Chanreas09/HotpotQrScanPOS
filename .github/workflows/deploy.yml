@@ -1,0 +1,39 @@
+name: Deploy Hotpot POS
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Replace placeholders with secrets
+        run: |
+          # Replace Firebase credentials
+          sed -i "s|__FIREBASE_API_KEY__|${{ secrets.FIREBASE_API_KEY }}|g" index.html
+          sed -i "s|__FIREBASE_AUTH_DOMAIN__|${{ secrets.FIREBASE_AUTH_DOMAIN }}|g" index.html
+          sed -i "s|__FIREBASE_DATABASE_URL__|${{ secrets.FIREBASE_DATABASE_URL }}|g" index.html
+          sed -i "s|__FIREBASE_PROJECT_ID__|${{ secrets.FIREBASE_PROJECT_ID }}|g" index.html
+          sed -i "s|__FIREBASE_STORAGE_BUCKET__|${{ secrets.FIREBASE_STORAGE_BUCKET }}|g" index.html
+          sed -i "s|__FIREBASE_SENDER_ID__|${{ secrets.FIREBASE_SENDER_ID }}|g" index.html
+          sed -i "s|__FIREBASE_APP_ID__|${{ secrets.FIREBASE_APP_ID }}|g" index.html
+          
+          # Replace Telegram placeholders
+          sed -i "s|__BOT_TOKEN__|${{ secrets.BOT_TOKEN }}|g" index.html
+          sed -i "s|__CHAT_ID__|${{ secrets.CHAT_ID }}|g" index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          force_orphan: true
