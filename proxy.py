@@ -39,5 +39,16 @@ def send_order():
 def health():
     return jsonify({"status": "ok"}), 200
 
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        "service": "Hotpot Telegram Proxy",
+        "status": "running",
+        "endpoints": {
+            "/send": "POST - Send message to Telegram",
+            "/health": "GET - Check service health"
+        }
+    }), 200
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
