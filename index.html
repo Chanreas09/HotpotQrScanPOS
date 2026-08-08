@@ -1459,11 +1459,6 @@ async function generateOrderNumber() {
 // TELEGRAM BOT - Using Vercel Serverless Function
 // ============================================
 
-// These are NOT used in Vercel mode (serverless function uses env variables)
-// But kept for fallback if needed
-const BOT_TOKEN = 'BOT_TOKEN_PLACEHOLDER';
-const CHAT_ID = 'CHAT_ID_PLACEHOLDER';
-
 window.confirmOrder = async function() {
     const order = state.currentOrder;
     if (!order) { showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error'); return; }
@@ -1499,17 +1494,15 @@ async function sendToTelegram(message, confirmBtn) {
         const data = await response.json();
         console.log('📥 Response from server:', data);
         
-        if (data.success || data.ok) {
+        if (data.ok) {
             console.log('✅ Telegram message sent successfully!');
             handleTelegramSuccess(confirmBtn);
         } else {
-            console.error('❌ Server returned error:', data.error);
-            // Fallback to manual if server fails
+            console.error('❌ Server returned error:', data.description);
             manualTelegramSend(message, confirmBtn);
         }
     } catch (error) {
         console.error('❌ Network error:', error);
-        // Fallback to manual if network fails
         manualTelegramSend(message, confirmBtn);
     }
 }
@@ -1544,7 +1537,7 @@ function handleTelegramSuccess(confirmBtn) {
         confirmBtn.disabled = false; 
     }
     window.showThankYou(state.currentOrder, 'auto');
-}    // ============================================
+}
     // KEYBOARD SHORTCUTS
     // ============================================
 
