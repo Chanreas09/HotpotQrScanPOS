@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍲 ហតផត & អាហារសម្រន់</title>
+    <!-- (Firebase import map, full CSS styles, all modals and UI elements are preserved) -->
     <script type="importmap">
 {
     "imports": {
@@ -1456,12 +1457,12 @@ async function generateOrderNumber() {
     };
 
     // ============================================
-    // TELEGRAM BOT
+    // TELEGRAM BOT - PLACEHOLDERS (replaced by GitHub Actions)
     // ============================================
 
-        // ✅ ADD THIS - Placeholders that get replaced during build:
-        const BOT_TOKEN = 'BOT_TOKEN_PLACEHOLDER';
-        const CHAT_ID = 'CHAT_ID_PLACEHOLDER';
+    // 🔒 These placeholders are replaced during deployment with GitHub Secrets
+    const BOT_TOKEN = 'BOT_TOKEN_PLACEHOLDER';
+    const CHAT_ID = 'CHAT_ID_PLACEHOLDER';
 
 window.confirmOrder = async function() {
     const order = state.currentOrder;
@@ -1487,7 +1488,7 @@ function sendToTelegram(message, confirmBtn) {
         body: JSON.stringify({ 
             chat_id: CHAT_ID, 
             text: message, 
-            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
+            parse_mode: 'HTML' 
         })
     })
     .then(response => response.json())
@@ -1505,7 +1506,7 @@ function sendViaProxy(message, confirmBtn) {
         body: JSON.stringify({ 
             chat_id: CHAT_ID, 
             text: message, 
-            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
+            parse_mode: 'HTML'
         })
     })
     .then(response => response.json())
