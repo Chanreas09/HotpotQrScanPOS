@@ -1,0 +1,36 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Replace Secrets in HTML
+        run: |
+          # Create a config file with the secrets
+          echo "const CONFIG = {" > config.js
+          echo "  BOT_TOKEN: '${{ secrets.TELEGRAM_BOT_TOKEN }}'," >> config.js
+          echo "  CHAT_ID: '${{ secrets.TELEGRAM_CHAT_ID }}'" >> config.js
+          echo "};" >> config.js
+          
+          # OR directly replace in HTML
+          sed -i "s|BOT_TOKEN_PLACEHOLDER|${{ secrets.TELEGRAM_BOT_TOKEN }}|g" index.html
+          sed -i "s|CHAT_ID_PLACEHOLDER|${{ secrets.TELEGRAM_CHAT_ID }}|g" index.html
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          keep_files: false
