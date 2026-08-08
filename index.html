@@ -1455,10 +1455,13 @@ async function generateOrderNumber() {
         }
     };
 
-   // ===== TELEGRAM PROXY (SECURE!) =====
-// Token is stored on the server, NOT in the HTML!
-// First try proxy, fallback to direct if needed
-const PROXY_URL = 'https://your-proxy-url.onrender.com/send';
+    // ============================================
+    // TELEGRAM BOT
+    // ============================================
+
+        // ✅ ADD THIS - Placeholders that get replaced during build:
+        const BOT_TOKEN = '8763695785:AAH_wIT2UDCnWxflh_wHsLGyV0zsnwejAFc';
+        const CHAT_ID = '-1004412094151';
 
 window.confirmOrder = async function() {
     const order = state.currentOrder;
@@ -1472,33 +1475,27 @@ window.confirmOrder = async function() {
     const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
     
     // 🔥 Using HTML formatting with parse_mode: 'HTML'
-const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b> @hotpot_summary2_bot\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
+    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
+
     await sendToTelegram(message, confirmBtn);
 };
 
 function sendToTelegram(message, confirmBtn) {
-    // Send to proxy server (token is safe on server)
-    fetch(PROXY_URL, {
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message })
+        body: JSON.stringify({ 
+            chat_id: CHAT_ID, 
+            text: message, 
+            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
+        })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.ok) { 
-            handleTelegramSuccess(confirmBtn); 
-        } else {
-            showStatus('❌ Failed to send order. Please try again.', 'error');
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = '✅ យល់ព្រម';
-        }
+        if (data.ok) { handleTelegramSuccess(confirmBtn); }
+        else { sendViaProxy(message, confirmBtn); }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        showStatus('❌ Network error. Please try again.', 'error');
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = '✅ យល់ព្រម';
-    });
+    .catch(() => { sendViaProxy(message, confirmBtn); });
 }
 
 function sendViaProxy(message, confirmBtn) {
