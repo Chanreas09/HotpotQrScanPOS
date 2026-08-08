@@ -1,6 +1,6 @@
 // api/send-telegram.js
 export default async function handler(req, res) {
-    // Only allow POST requests
+    // Only allow POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -34,11 +34,11 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (data.ok) {
-            res.status(200).json({ success: true, data });
+            res.status(200).json(data);
         } else {
-            res.status(400).json({ success: false, error: data.description });
+            res.status(400).json({ error: data.description });
         }
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ error: error.message });
     }
 }
