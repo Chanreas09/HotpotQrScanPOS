@@ -1,0 +1,2 @@
+# config.js contains secrets - NEVER commit it!
+config.js
