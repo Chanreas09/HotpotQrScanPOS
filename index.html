@@ -1459,9 +1459,8 @@ async function generateOrderNumber() {
 // TELEGRAM BOT - Using Vercel Serverless Function
 // ============================================
 
-// 🔒 These placeholders are NOT used in Vercel mode
-// (The serverless function uses environment variables instead)
-// But keep them for GitHub Pages fallback if needed
+// These are NOT used in Vercel mode (serverless function uses env variables)
+// But kept for fallback if needed
 const BOT_TOKEN = 'BOT_TOKEN_PLACEHOLDER';
 const CHAT_ID = 'CHAT_ID_PLACEHOLDER';
 
@@ -1545,8 +1544,7 @@ function handleTelegramSuccess(confirmBtn) {
         confirmBtn.disabled = false; 
     }
     window.showThankYou(state.currentOrder, 'auto');
-}
-    // ============================================
+}    // ============================================
     // KEYBOARD SHORTCUTS
     // ============================================
 
