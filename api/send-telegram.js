@@ -1,11 +1,11 @@
 // api/send-telegram.js
 export default async function handler(req, res) {
-    // Only allow POST
+    // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Get secrets from environment
+    // Get secrets from environment variables
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
     const { message } = req.body;
@@ -13,6 +13,10 @@ export default async function handler(req, res) {
     // Validate
     if (!message) {
         return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (!BOT_TOKEN || !CHAT_ID) {
+        return res.status(500).json({ error: 'Missing Telegram configuration' });
     }
 
     try {
@@ -28,7 +32,7 @@ export default async function handler(req, res) {
         });
 
         const data = await response.json();
-        
+
         if (data.ok) {
             res.status(200).json({ success: true, data });
         } else {
