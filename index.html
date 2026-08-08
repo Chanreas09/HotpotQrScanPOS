@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍲 ហតផត & អាហារសម្រន់</title>
+    <script type="importmap">
+{
+    "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+        "firebase/database": "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"
+    }
+}
+</script>
+   <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #e74c3c;
+            --primary-dark: #c0392b;
+            --primary-light: #fde8e8;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --info: #3498db;
+            --shadow: 0 10px 40px rgba(0,0,0,0.1);
+            --radius: 16px;
+        }
+        body {
+            font-family: 'Khmer OS', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 16px;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .app-wrapper { width: 100%; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .app-card {
+            width: 100%; max-width: 480px; max-height: 98vh;
+            background: white; border-radius: var(--radius); padding: 20px;
+            box-shadow: var(--shadow); overflow-y: auto; position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+        .app-card::-webkit-scrollbar { width: 4px; }
+        .app-card::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 12px; }
+        .container { position: relative; }
+
+        .admin-toggle {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;
+            padding: 8px; background: #f8f9fa; border-radius: 30px;
+        }
+        .admin-toggle button {
+            padding: 8px 24px; border: none; border-radius: 20px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+            font-size: 14px; font-family: inherit;
+            background: transparent; color: #7f8c8d;
+        }
+        .admin-toggle button.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+        .admin-toggle button:hover:not(.active) { background: #e0e0e0; }
+
+        .admin-banner {
+            background: var(--warning); color: white; text-align: center;
+            padding: 10px; border-radius: 10px; margin-bottom: 16px;
+            font-weight: 700; font-size: 14px; display: none;
+            animation: slideIn 0.3s ease;
+        }
+        .admin-banner.active { display: block; }
+
+        .header {
+            text-align: center; margin-bottom: 20px; padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary); position: relative;
+        }
+        .header h1 { color: var(--primary); font-size: 28px; font-weight: 800; }
+        .header .subtitle { color: #7f8c8d; font-size: 13px; margin-top: 4px; }
+        .order-number-container {
+            display: inline-flex; justify-content: center; align-items: center;
+            gap: 12px; margin-top: 10px; background: #f8f9fa;
+            padding: 8px 16px; border-radius: 30px; margin-left: auto; margin-right: auto;
+        }
+        .order-number { font-size: 22px; font-weight: 800; color: var(--primary); font-family: 'Courier New', monospace; letter-spacing: 1px; }
+        .badge-new { background: var(--success); color: white; font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 700; animation: pulse 2s infinite; }
+
+        .option-group { margin-bottom: 16px; padding: 14px; background: #f8f9fa; border-radius: 12px; transition: all 0.3s; }
+        .option-group:hover { background: #f0f1f3; }
+        .option-group h3 {
+            color: #2c3e50; margin-bottom: 10px; font-size: 16px;
+            font-weight: 700; display: flex; align-items: center; gap: 8px;
+        }
+        .option-group h3 .count {
+            background: var(--primary); color: white; font-size: 11px;
+            padding: 1px 10px; border-radius: 20px; margin-left: auto;
+        }
+        .option-group h3 .admin-actions { display: none; gap: 6px; margin-left: auto; }
+        .admin-mode .option-group h3 .admin-actions { display: flex; }
+        .admin-actions button { padding: 2px 10px; border: none; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        .admin-actions .btn-add-cat { background: var(--success); color: white; }
+        .admin-actions .btn-add-cat:hover { transform: scale(1.05); }
+
+        .option-item {
+            display: inline-block; padding: 10px 20px; margin: 4px 6px 4px 0;
+            background: white; border: 2px solid #e0e0e0; border-radius: 30px;
+            cursor: pointer; transition: all 0.3s; font-size: 15px; font-weight: 600; font-family: inherit;
+        }
+        .option-item:hover { border-color: var(--primary); background: var(--primary-light); }
+        .option-item input { display: none; }
+        .option-item.active { border-color: var(--primary); background: var(--primary); color: white; }
+
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .menu-item {
+            padding: 12px 8px; background: white; border: 2px solid #e8e8e8;
+            border-radius: 10px; text-align: center; cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            position: relative; user-select: none;
+        }
+        .menu-item:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 4px 12px rgba(231,76,60,0.15); }
+        .menu-item.selected { background: var(--primary); color: white; border-color: var(--primary); transform: scale(0.98); }
+        .menu-item .item-name { font-weight: 700; font-size: 14px; }
+        .menu-item .item-price { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+        .menu-item.selected .item-price { opacity: 0.9; }
+        .menu-item .item-emoji { font-size: 20px; display: block; margin-bottom: 2px; }
+        .menu-item .qty-badge {
+            position: absolute; top: -8px; right: -8px; background: var(--primary-dark);
+            color: white; width: 24px; height: 24px; border-radius: 50%;
+            font-size: 12px; font-weight: 800; display: none;
+            align-items: center; justify-content: center; border: 2px solid white;
+        }
+        .menu-item.selected .qty-badge { display: flex; }
+        .menu-item .admin-item-controls {
+            display: none; position: absolute; top: -10px; left: -10px; gap: 4px; z-index: 10;
+        }
+        .admin-mode .menu-item .admin-item-controls { display: flex; }
+        .menu-item .admin-item-controls button {
+            width: 24px; height: 24px; border: 2px solid white; border-radius: 50%;
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .menu-item .admin-item-controls .btn-edit-item { background: var(--info); color: white; }
+        .menu-item .admin-item-controls .btn-edit-item:hover { transform: scale(1.1); }
+        .menu-item .admin-item-controls .btn-delete-item { background: var(--primary); color: white; }
+        .menu-item .admin-item-controls .btn-delete-item:hover { transform: scale(1.1); }
+
+        .qty-controls { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
+        .qty-btn {
+            width: 28px; height: 28px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.2); color: white; font-size: 16px;
+            font-weight: 700; cursor: pointer; transition: all 0.2s; display: none;
+        }
+        .menu-item.selected .qty-btn { display: inline-flex; align-items: center; justify-content: center; }
+        .qty-btn:hover { background: rgba(255,255,255,0.4); transform: scale(1.1); }
+        .qty-btn:active { transform: scale(0.9); }
+        .qty-value { font-weight: 700; font-size: 16px; min-width: 20px; display: none; }
+        .menu-item.selected .qty-value { display: inline-block; }
+
+        .admin-add-section { display: none; margin-top: 10px; padding: 12px; background: white; border-radius: 10px; border: 2px dashed var(--info); transition: all 0.3s; }
+        .admin-mode .admin-add-section { display: block; }
+        .admin-add-section:hover { border-color: var(--primary); }
+        .admin-add-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .admin-add-row input, .admin-add-row select {
+            padding: 6px 10px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 13px; font-family: inherit; transition: all 0.3s; flex: 1; min-width: 60px;
+        }
+        .admin-add-row input:focus, .admin-add-row select:focus { outline: none; border-color: var(--info); box-shadow: 0 0 0 4px rgba(52,152,219,0.1); }
+        .admin-add-row input[type="number"] { max-width: 80px; }
+        .admin-add-row select { max-width: 120px; }
+        .btn-add-item {
+            padding: 6px 16px; background: var(--info); color: white; border: none;
+            border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+            white-space: nowrap; font-family: inherit;
+        }
+        .btn-add-item:hover { background: #2980b9; transform: scale(1.05); }
+
+        .category-management { display: none; margin-top: 8px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        .admin-mode .category-management { display: block; }
+        .category-tag {
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+            background: white; border-radius: 20px; margin: 3px; border: 1px solid #e0e0e0;
+            font-size: 13px; font-family: inherit;
+        }
+        .category-tag .remove-cat { cursor: pointer; color: var(--primary); font-weight: 700; margin-left: 4px; }
+        .category-tag .remove-cat:hover { transform: scale(1.2); }
+        .add-category-row { display: flex; gap: 6px; margin-top: 6px; }
+        .add-category-row input { flex: 1; padding: 6px 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-family: inherit; }
+        .add-category-row button { padding: 6px 16px; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+        #summaryGroup { background: white; border: 2px solid var(--primary-light); transition: all 0.3s; }
+        .summary-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;
+            animation: slideIn 0.2s ease;
+        }
+        .summary-item:last-child { border-bottom: none; }
+        .summary-item .item-info { display: flex; align-items: center; gap: 8px; }
+        .summary-item .item-qty { color: var(--primary); font-weight: 700; min-width: 24px; }
+        .summary-item .remove-btn {
+            background: none; border: none; color: #e74c3c; cursor: pointer;
+            font-size: 18px; padding: 0 4px; transition: all 0.2s; opacity: 0.5;
+        }
+        .summary-item .remove-btn:hover { opacity: 1; transform: scale(1.2); }
+        .summary-total {
+            display: flex; justify-content: space-between; padding-top: 10px;
+            margin-top: 10px; border-top: 2px solid var(--primary);
+            font-size: 18px; font-weight: 800; color: var(--primary);
+        }
+
+        #instructions {
+            width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-family: inherit; font-size: 14px;
+            resize: vertical; min-height: 60px; transition: all 0.3s;
+        }
+        #instructions:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(231,76,60,0.1); }
+
+        .btn-primary {
+            width: 100%; padding: 14px; background: var(--primary); color: white;
+            border: none; border-radius: 12px; font-size: 17px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,76,60,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-confirm {
+            width: 100%; padding: 14px; background: var(--success); color: white;
+            border: none; border-radius: 12px; font-size: 17px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit; margin-top: 12px;
+        }
+        .btn-confirm:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.3); }
+        .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            width: 100%; padding: 12px; background: transparent; color: var(--primary);
+            border: 2px solid var(--primary); border-radius: 12px; font-size: 15px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 8px; font-family: inherit;
+        }
+        .btn-secondary:hover { background: var(--primary-light); }
+
+        .status {
+            margin-top: 12px; padding: 12px; border-radius: 10px; text-align: center;
+            display: none; font-weight: 600; animation: slideIn 0.3s ease;
+        }
+        .status.success { display: block; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { display: block; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { display: block; background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000;
+            padding: 20px; animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+        .modal {
+            background: white; border-radius: var(--radius); padding: 20px;
+            max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #f0f0f0;
+        }
+        .modal-header h2 { font-size: 20px; color: #2c3e50; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #7f8c8d; }
+        .modal-close:hover { color: var(--primary); }
+        .modal .form-group { margin-bottom: 12px; }
+        .modal .form-group label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; color: #2c3e50; }
+        .modal .form-group input, .modal .form-group select {
+            width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0;
+            border-radius: 8px; font-size: 14px; font-family: inherit;
+        }
+        .modal .form-group input:focus, .modal .form-group select:focus { outline: none; border-color: var(--info); }
+
+        .receipt { font-family: 'Khmer OS', 'Courier New', monospace; padding: 20px; background: white; }
+        .receipt .receipt-header { text-align: center; border-bottom: 2px dashed #333; padding-bottom: 12px; margin-bottom: 12px; }
+        .receipt .receipt-header h2 { font-size: 20px; letter-spacing: 2px; }
+        .receipt .receipt-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+        .receipt .receipt-total { border-top: 2px dashed #333; padding-top: 10px; margin-top: 10px; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; }
+        .receipt .receipt-footer { text-align: center; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #333; font-size: 12px; color: #666; }
+
+        /* Thank You success screen */
+        @keyframes tyPop { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.15) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+        @keyframes tyRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .thank-you-modal, .order-failed-modal { text-align: center; max-width: 380px; }
+        .thank-you-content, .order-failed-content { padding: 12px 6px 4px; }
+        .ty-icon { font-size: 64px; margin-bottom: 10px; animation: tyPop 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+        .ty-title { color: var(--success); font-size: 26px; font-weight: 800; margin-bottom: 6px; animation: tyRise 0.4s ease 0.15s both; }
+        .ty-subtitle { color: #555; font-size: 14px; margin-bottom: 18px; line-height: 1.5; animation: tyRise 0.4s ease 0.2s both; }
+        .ty-order-box {
+            background: linear-gradient(135deg, #f8f9fa, #eef2f5); border-radius: 16px;
+            padding: 18px; margin-bottom: 18px; border: 2px solid var(--primary-light);
+            animation: tyRise 0.4s ease 0.25s both;
+        }
+        .ty-order-label { font-size: 12px; color: #7f8c8d; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .ty-order-number { font-family: 'Courier New', monospace; font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+        .ty-order-total { font-size: 26px; font-weight: 800; color: var(--success); margin-top: 6px; }
+        .ty-note { font-size: 13px; color: #7f8c8d; margin-bottom: 18px; animation: tyRise 0.4s ease 0.3s both; }
+        .ty-close-btn { background: var(--success); animation: tyRise 0.4s ease 0.35s both; }
+        .ty-close-btn:hover { background: #219150; }
+
+        /* Order Not Sent screen */
+        .of-icon { font-size: 56px; margin-bottom: 12px; animation: pulse 1.4s infinite; }
+        .of-title { color: var(--primary); font-size: 21px; font-weight: 800; margin-bottom: 10px; }
+        .of-subtitle { color: #555; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .of-discard-btn { color: var(--primary) !important; border-color: var(--primary) !important; }
+
+        .fab { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
+        .fab-btn {
+            width: 56px; height: 56px; border-radius: 50%; border: none;
+            background: var(--primary); color: white; font-size: 24px;
+            cursor: pointer; box-shadow: 0 4px 16px rgba(231,76,60,0.4);
+            transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+        }
+        .fab-btn:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(231,76,60,0.5); }
+        .fab-btn.secondary { background: #34495e; box-shadow: 0 4px 16px rgba(52,73,94,0.4); }
+        .fab-btn.secondary:hover { box-shadow: 0 6px 24px rgba(52,73,94,0.5); }
+
+        @media (max-width: 480px) {
+            .app-card { padding: 16px; border-radius: 16px; max-height: 96vh; }
+            .menu-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .menu-item { padding: 10px 6px; font-size: 13px; }
+            .header h1 { font-size: 22px; }
+            .option-item { padding: 8px 14px; font-size: 13px; }
+            .admin-add-row { flex-direction: column; }
+            .admin-add-row input, .admin-add-row select { min-width: 100%; max-width: 100%; }
+            .admin-add-row input[type="number"] { max-width: 100%; }
+            .fab { bottom: 12px; right: 12px; }
+            .fab-btn { width: 48px; height: 48px; font-size: 20px; }
+        }
+        @media (max-width: 360px) {
+            .app-card { padding: 12px; border-radius: 12px; }
+            .menu-grid { grid-template-columns: 1fr 1fr; gap: 4px; }
+            .menu-item { padding: 8px 4px; font-size: 12px; min-height: 60px; }
+            .header h1 { font-size: 20px; }
+        }
+        @media (max-height: 500px) and (orientation: landscape) {
+            .app-card { max-height: 94vh; padding: 12px; }
+            .menu-grid { grid-template-columns: 1fr 1fr 1fr; }
+            .header h1 { font-size: 20px; }
+            .header { margin-bottom: 10px; padding-bottom: 8px; }
+            .option-group { padding: 8px 10px; margin-bottom: 8px; }
+        }
+        @media (min-width: 768px) and (max-width: 1024px) { .app-card { max-width: 520px; padding: 24px; } }
+        @media (min-width: 1400px) { .app-card { max-width: 560px; padding: 28px; border-radius: 24px; } }
+        @media print { .no-print { display: none !important; } .container { box-shadow: none; } .modal-overlay { position: static; background: none; padding: 0; } .modal { max-height: none; } }
+
+        .empty-state { text-align: center; padding: 30px 20px; color: #7f8c8d; }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .history-item { padding: 12px; border: 1px solid #f0f0f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .history-item:hover { background: #f8f9fa; border-color: var(--primary); }
+        .history-item .h-order { font-weight: 700; color: var(--primary); }
+        .history-item .h-time { font-size: 12px; color: #7f8c8d; }
+        .history-item .h-total { float: right; font-weight: 700; }
+
+        .order-type-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .order-type-popup {
+            background: white; border-radius: 20px; padding: 30px 24px;
+            max-width: 400px; width: 92%; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.4s ease; max-height: 90vh; overflow-y: auto;
+        }
+        @media (max-width: 360px) {
+            .order-type-popup { padding: 20px 16px; }
+            .order-type-popup h2 { font-size: 22px; }
+            .order-type-option { padding: 14px 12px; font-size: 16px; }
+        }
+        .order-type-popup h2 { color: var(--primary); font-size: 24px; margin-bottom: 8px; }
+        .order-type-popup .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 24px; }
+        .customer-name-group { text-align: left; margin-bottom: 20px; }
+        .customer-name-group label {
+            display: block; font-size: 13px; font-weight: 700; color: #2c3e50;
+            margin-bottom: 6px;
+        }
+        .customer-name-group label .required-star { color: var(--primary); }
+        #customerNameInput {
+            width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0;
+            border-radius: 12px; font-size: 16px; font-family: inherit;
+            transition: all 0.3s;
+        }
+        #customerNameInput:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(231,76,60,0.1); }
+        #customerNameInput.filled { border-color: var(--success); }
+        .order-type-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+        .order-type-option {
+            padding: 16px 20px; border: 3px solid #e0e0e0; border-radius: 14px;
+            cursor: pointer; transition: all 0.3s ease; font-size: 18px;
+            font-weight: 600; font-family: inherit; background: white; color: #2c3e50;
+        }
+        .order-type-option:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); }
+        .order-type-option.selected { border-color: var(--primary); background: var(--primary); color: white; box-shadow: 0 4px 16px rgba(231,76,60,0.3); }
+        .order-type-option .option-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+        .order-type-option .option-desc { font-size: 12px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+        .order-type-option.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(0.4); }
+        .name-hint { font-size: 12px; color: var(--primary); margin-top: -14px; margin-bottom: 18px; text-align: left; display: none; }
+        .name-hint.show { display: block; animation: slideIn 0.3s ease; }
+        .btn-confirm-order-type {
+            width: 100%; padding: 14px; background: var(--primary); color: white;
+            border: none; border-radius: 12px; font-size: 18px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+            opacity: 0.5; pointer-events: none;
+        }
+        .btn-confirm-order-type.active { opacity: 1; pointer-events: auto; }
+        .btn-confirm-order-type.active:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,76,60,0.3); }
+        .main-content-hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- ORDER TYPE SELECTION POPUP -->
+<div class="order-type-overlay" id="orderTypeOverlay">
+    <div class="order-type-popup">
+        <h2>🍲 ស្វាគមន៍!</h2>
+        <div class="subtitle">សូមបំពេញព័ត៌មាន ដើម្បីចាប់ផ្តើមកម្មង់</div>
+
+        <div class="customer-name-group">
+            <label for="customerNameInput">ឈ្មោះអតិថិជន <span class="required-star">*</span></label>
+            <input type="text" id="customerNameInput" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក..." autocomplete="off" oninput="window.handleNameInput()" />
+        </div>
+        <div class="name-hint" id="nameHint">👆 សូមបញ្ចូលឈ្មោះជាមុនសិន ដើម្បីជ្រើសរើសប្រភេទការបញ្ជាទិញ</div>
+
+        <div class="order-type-options" id="orderTypeOptions">
+            <div class="order-type-option locked" data-value="Here" onclick="selectOrderType(this)">
+                <span class="option-emoji">🏠</span> ញុាំទីនេះ
+                <div class="option-desc">ទទួលទាននៅទីនេះ</div>
+            </div>
+            <div class="order-type-option locked" data-value="Take Away" onclick="selectOrderType(this)">
+                <span class="option-emoji">🛍️</span> ច្រកទៅផ្ទះ
+                <div class="option-desc">យកទៅផ្ទះ</div>
+            </div>
+        </div>
+        <button class="btn-confirm-order-type" id="confirmOrderTypeBtn" onclick="confirmOrderType()">✅ យល់ព្រម</button>
+    </div>
+</div>
+
+<div class="main-content-hidden" id="mainContent">
+    <div class="app-wrapper">
+        <div class="app-card">
+            <div class="container" id="appContainer">
+                <div class="admin-toggle no-print" id="adminToggle" style="display:none;">
+                    <button class="active" id="customerMode" onclick="setMode('customer')">👤 អតិថិជន</button>
+                    <button id="adminMode" onclick="setMode('admin')">🔧 អ្នកគ្រប់គ្រង</button>
+                </div>
+                <div class="admin-banner" id="adminBanner">🔧 របៀបអ្នកគ្រប់គ្រង - កែប្រែម៉ឺនុយ</div>
+
+                <div class="header">
+                    <h1>🍲 ហតផត & អាហារសម្រន់</h1>
+                    <div class="subtitle">បញ្ជាទិញ ងាយស្រួល រហ័ស</div>
+                    <div class="order-number-container">
+                        <span class="order-label">លេខបញ្ជាទិញ</span>
+<span class="order-number" id="orderNumber" style="font-size:20px;font-weight:900;color:#e74c3c;">---</span>                        <span class="badge-new">ថ្មី</span>
+                    </div>
+                </div>
+
+                <div id="menuContainer"></div>
+
+                <div class="admin-add-section" id="adminAddSection">
+                    <h4 style="margin-bottom:8px;color:var(--info);">➕ បន្ថែមមុខម្ហូប</h4>
+                    <div class="admin-add-row">
+                        <select id="adminCategorySelect"><option value="">ជ្រើសរើសប្រភេទ</option></select>
+                        <input type="text" id="adminItemName" placeholder="ឈ្មោះម្ហូប..." />
+                        <input type="number" id="adminItemPrice" placeholder="តម្លៃ" step="100" min="0" />
+                        <input type="text" id="adminItemEmoji" placeholder="សញ្ញា" value="🍽️" maxlength="2" style="max-width:60px;" />
+                        <button class="btn-add-item" onclick="addMenuItem()">➕ បន្ថែម</button>
+                    </div>
+                </div>
+
+                <div class="category-management" id="categoryManagement">
+                    <h4 style="margin-bottom:8px;color:var(--success);">📂 គ្រប់គ្រងប្រភេទ</h4>
+                    <div id="categoryTags"></div>
+                    <div class="add-category-row">
+                        <input type="text" id="newCategoryName" placeholder="ឈ្មោះប្រភេទថ្មី..." />
+                        <button onclick="addCategory()">➕ បន្ថែម</button>
+                    </div>
+                </div>
+
+                <div class="option-group" id="summaryGroup" style="display:none;">
+                    <h3>📋 សង្ខេបការបញ្ជាទិញ <span class="count" id="itemCount">0</span></h3>
+                    <div id="orderSummary"></div>
+                    <div class="summary-total"><span>សរុប</span><span>៛<span id="totalPrice">0</span></span></div>
+                </div>
+
+                <div class="option-group">
+                    <h3>📝 កំណត់ចំណាំពិសេស</h3>
+                    <textarea id="instructions" rows="2" placeholder="មានការស្នើសុំពិសេសទេ? (ឧ. មិនបន្ថែមម្សៅ ហឹរបន្ថែម ។ល។)"></textarea>
+                </div>
+
+                <button class="btn-primary" id="placeOrderBtn">📤 ដាក់ការបញ្ជាទិញ</button>
+            </div>
+        </div>
+    </div>
+    <div id="status" class="status"></div>
+    <div id="adminLoginTrigger" style="height:30px;cursor:pointer;opacity:0.2;text-align:center;font-size:12px;color:#999;user-select:none;padding:10px 0;margin-top:10px;border-top:1px solid #eee;" onclick="triggerAdminLogin()">⋮ ⋮ ⋮</div>
+</div>
+
+<!-- History Modal -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal">
+        <div class="modal-header"><h2>📜 ប្រវត្តិការបញ្ជាទិញ</h2><button class="modal-close" onclick="closeModal('historyModal')">✕</button></div>
+        <div id="historyList"></div>
+        <button class="btn-secondary" onclick="clearHistory()" style="margin-top:12px;color:#e74c3c;border-color:#e74c3c;">🗑️ លុបប្រវត្តិទាំងអស់</button>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-overlay" id="receiptModal">
+    <div class="modal">
+        <div class="modal-header"><h2>🧾 បង្កាន់ដៃ</h2><button class="modal-close" onclick="closeModal('receiptModal')">✕</button></div>
+        <div id="receiptContent"></div>
+        <button class="btn-confirm" id="confirmOrderBtn" onclick="confirmOrder()">✅ យល់ព្រម</button>
+<!-- <button class="btn-secondary" onclick="printReceipt()" style="margin-top:8px;">🖨️ បោះពុម្ព</button> -->    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header"><h2>✏️ កែប្រែមុខម្ហូប</h2><button class="modal-close" onclick="closeModal('editModal')">✕</button></div>
+        <div id="editForm">
+            <div class="form-group"><label>ឈ្មោះម្ហូប</label><input type="text" id="editItemName" /></div>
+            <div class="form-group"><label>តម្លៃ (៛)</label><input type="number" id="editItemPrice" step="100" min="0" /></div>
+            <div class="form-group"><label>សញ្ញា</label><input type="text" id="editItemEmoji" maxlength="2" /></div>
+            <div class="form-group"><label>ប្រភេទ</label><select id="editItemCategory"></select></div>
+            <button class="btn-primary" onclick="saveEditItem()" style="background:var(--info);">💾 រក្សាទុក</button>
+        </div>
+    </div>
+</div>
+
+<!-- Thank You Modal -->
+<div class="modal-overlay" id="thankYouModal">
+    <div class="modal thank-you-modal">
+        <div class="thank-you-content">
+            <div class="ty-icon">✅</div>
+            <h2 class="ty-title">សូមអរគុណ!</h2>
+            <p class="ty-subtitle" id="tySubtitle">ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើដោយជោគជ័យ</p>
+            <div class="ty-order-box">
+                <div class="ty-order-label">លេខបញ្ជាទិញ</div>
+                <div class="ty-order-number" id="tyOrderNumber">#000000</div>
+                <div class="ty-order-total" id="tyOrderTotal">៛0</div>
+            </div>
+            <p class="ty-note">👨‍🍳 សូមរង់ចាំ ម្ហូបរបស់អ្នកកំពុងត្រូវបានរៀបចំ</p>
+            <button class="btn-primary ty-close-btn" onclick="window.closeThankYou()">🍲 ការបញ្ជាទិញថ្មី</button>
+        </div>
+    </div>
+</div>
+
+<!-- Order Not Sent Modal -->
+<div class="modal-overlay" id="orderFailedModal">
+    <div class="modal order-failed-modal">
+        <div class="order-failed-content">
+            <div class="of-icon">⚠️</div>
+            <h2 class="of-title">ការបញ្ជាទិញមិនទាន់បានផ្ញើ!</h2>
+            <p class="of-subtitle">អ្នកមិនទាន់បានចុច "យល់ព្រម" ដើម្បីផ្ញើការបញ្ជាទិញនេះទៅផ្ទះបាយនៅឡើយទេ។</p>
+            <button class="btn-confirm" onclick="window.resumeReceipt()">↩️ ត្រឡប់ទៅចុច "យល់ព្រម"</button>
+            <button class="btn-secondary of-discard-btn" onclick="window.discardOrder()">🗑️ បោះបង់ការបញ្ជាទិញនេះ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     GLOBAL FUNCTIONS (for onclick to work)
+     ============================================ -->
+<script>
+window._selectedOrderType = null;
+window._customerName = '';
+
+// Called on every keystroke in the name field.
+// Unlocks the Here/Take Away options only once a name is present.
+window.handleNameInput = function() {
+    const input = document.getElementById('customerNameInput');
+    const options = document.querySelectorAll('#orderTypeOptions .order-type-option');
+    const hint = document.getElementById('nameHint');
+    const name = input.value.trim();
+    window._customerName = name;
+
+    if (name.length > 0) {
+        input.classList.add('filled');
+        options.forEach(opt => opt.classList.remove('locked'));
+        if (hint) hint.classList.remove('show');
+    } else {
+        input.classList.remove('filled');
+        options.forEach(opt => opt.classList.add('locked'));
+        // If a type was already selected, unselect it since name was cleared
+        options.forEach(opt => opt.classList.remove('selected'));
+        window._selectedOrderType = null;
+        const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+        if (confirmBtn) confirmBtn.classList.remove('active');
+    }
+};
+
+// Store the selected order type
+window.selectOrderType = function(element) {
+    // Guard: ignore clicks if name hasn't been entered yet (options are
+    // also visually locked + pointer-events:none, this is a second safety net)
+    const name = document.getElementById('customerNameInput').value.trim();
+    if (!name) {
+        const hint = document.getElementById('nameHint');
+        if (hint) hint.classList.add('show');
+        document.getElementById('customerNameInput').focus();
+        return;
+    }
+    document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    window._selectedOrderType = element.dataset.value;
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    if (confirmBtn) confirmBtn.classList.add('active');
+    console.log('✅ Order type selected:', window._selectedOrderType);
+};
+
+// Confirm and show the main app
+window.confirmOrderType = function() {
+    const name = document.getElementById('customerNameInput').value.trim();
+    if (!name) {
+        const hint = document.getElementById('nameHint');
+        if (hint) hint.classList.add('show');
+        document.getElementById('customerNameInput').focus();
+        return;
+    }
+    if (!window._selectedOrderType) {
+        alert('សូមជ្រើសរើសប្រភេទការបញ្ជាទិញ!');
+        return;
+    }
+    window._customerName = name;
+    document.documentElement.dataset.customerName = name;
+    document.getElementById('orderTypeOverlay').style.display = 'none';
+    document.getElementById('mainContent').classList.remove('main-content-hidden');
+    document.documentElement.dataset.orderType = window._selectedOrderType;
+
+    // Reset the order type selection for next time (name is reset separately in resetToOrderType)
+    window._selectedOrderType = null;
+    document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    if (confirmBtn) confirmBtn.classList.remove('active');
+
+    const typeDisplay = document.documentElement.dataset.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
+    const statusDiv = document.getElementById('status');
+    if (statusDiv) {
+        statusDiv.textContent = `✅ ${name} - បានជ្រើសរើស: ${typeDisplay}`;
+        statusDiv.className = 'status success';
+        statusDiv.style.display = 'block';
+        setTimeout(() => statusDiv.style.display = 'none', 3000);
+    }
+    console.log('✅ Order type confirmed for', name);
+};
+
+// 🔥 NEW: Reset everything and show the order type popup again
+window.resetToOrderType = function() {
+    // Reset the order type selection
+    window._selectedOrderType = null;
+    document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('selected'));
+    const confirmBtn = document.getElementById('confirmOrderTypeBtn');
+    if (confirmBtn) confirmBtn.classList.remove('active');
+
+    // Clear the stored order type and customer name
+    document.documentElement.dataset.orderType = '';
+    document.documentElement.dataset.customerName = '';
+    window._customerName = '';
+    const nameInput = document.getElementById('customerNameInput');
+    if (nameInput) {
+        nameInput.value = '';
+        nameInput.classList.remove('filled');
+    }
+    document.querySelectorAll('#orderTypeOptions .order-type-option').forEach(opt => opt.classList.add('locked'));
+    const hint = document.getElementById('nameHint');
+    if (hint) hint.classList.remove('show');
+
+    // Hide the main content
+    document.getElementById('mainContent').classList.add('main-content-hidden');
+
+    // Show the popup
+    document.getElementById('orderTypeOverlay').style.display = 'flex';
+
+    // Reset all selected items
+    document.querySelectorAll('.menu-item.selected').forEach(item => item.classList.remove('selected'));
+
+    // Clear the order summary
+    document.getElementById('summaryGroup').style.display = 'none';
+    document.getElementById('orderSummary').innerHTML = '';
+    document.getElementById('totalPrice').textContent = '0';
+    document.getElementById('itemCount').textContent = '0';
+
+    // Clear instructions
+    document.getElementById('instructions').value = '';
+
+    // Reset state
+    state.items = {};
+    state.currentOrderNumber = null;
+    state.orderType = 'Here';
+    state.customerName = '';
+
+    // Generate a fresh order number
+    setTimeout(() => {
+        if (typeof generateOrderNumber === 'function') {
+            generateOrderNumber();
+        }
+    }, 100);
+
+    console.log('🔄 Reset to order type selection');
+};
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && document.getElementById('orderTypeOverlay').style.display !== 'none') {
+        window.confirmOrderType();
+    }
+});
+</script>
+<!-- ============================================
+     MAIN APPLICATION
+     ============================================ -->
+<script type="module">
+    const DEFAULT_MENU = {
+        categories: ['ហតផត', 'គ្រឿងថែម', 'ភេសជ្ជៈ', 'អាហារសម្រន់'],
+        items: [
+            { id: 'noodle-small', name: 'មីចិន តូច', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'noodle-large', name: 'មីចិន ធំ', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'soy-noodle', name: 'មីសួរ', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'khmer-noodle', name: 'មីខ្មែរ', price: 8000, category: 'ហតផត', emoji: '🍜' },
+            { id: 'chicken', name: 'មាន់ខ្មៅ', price: 2000, category: 'គ្រឿងថែម', emoji: '🍗' },
+            { id: 'meatball', name: 'ប្រហិតនំប៉ាវឆ្នូត', price: 2000, category: 'គ្រឿងថែម', emoji: '🧆' },
+            { id: 'tofu', name: 'តៅហ៊ូជ្រុងតូច', price: 2000, category: 'គ្រឿងថែម', emoji: '🫘' },
+            { id: 'hotdog', name: 'ហតដកតូច', price: 2000, category: 'គ្រឿងថែម', emoji: '🌭' },
+            { id: 'water', name: 'ទឹកសុទ្ធិ តូច', price: 1000, category: 'ភេសជ្ជៈ', emoji: '💧' },
+            { id: 'coke', name: 'កូកា កែវ', price: 1000, category: 'ភេសជ្ជៈ', emoji: '🥤' },
+            { id: 'fried-5', name: 'គាវ ៥ គ្រាប់', price: 2500, category: 'អាហារសម្រន់', emoji: '🍤' },
+            { id: 'fried-10', name: 'គាវ ១០ គ្រាប់', price: 5000, category: 'អាហារសម្រន់', emoji: '🍤' },
+            { id: 'tofu-grilled-5', name: 'តៅហ៊ូអាំង ៥', price: 5000, category: 'អាហារសម្រន់', emoji: '🫘' },
+            { id: 'tofu-grilled-10', name: 'តៅហ៊ូអាំង ១០', price: 10000, category: 'អាហារសម្រន់', emoji: '🫘' }
+        ]
+    };
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAumwh2Z-rPKZU-t9qtTLWEkxuU_9hRKBg",
+        authDomain: "hotpot-pos-qr.firebaseapp.com",
+        databaseURL: "https://hotpot-pos-qr-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "hotpot-pos-qr",
+        storageBucket: "hotpot-pos-qr.firebasestorage.app",
+        messagingSenderId: "12794193112",
+        appId: "1:12794193112:web:d7440ae1472217591163ad"
+    };
+
+    import { initializeApp } from "firebase/app";
+    import { getDatabase, ref, get, set, runTransaction } from "firebase/database";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let menuData = { categories: [], items: [] };
+    let state = {
+        orderNumber: 0,
+        currentOrderNumber: null,
+        orderType: 'Here',
+        customerName: '',
+        items: {},
+        orderHistory: [],
+        currentOrder: null,
+        mode: 'customer',
+        editingItemId: null,
+        lastOrderDate: new Date().toDateString()
+    };
+
+    // ============================================
+    // CORE FUNCTIONS
+    // ============================================
+
+    function loadMenu() {
+        try {
+            const saved = localStorage.getItem('hotpotMenuData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                menuData = parsed;
+                if (!menuData.categories) menuData.categories = DEFAULT_MENU.categories;
+                if (!menuData.items) menuData.items = [];
+                return true;
+            }
+        } catch (e) { console.warn('Failed to load menu:', e); }
+        menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
+        saveMenu();
+        return false;
+    }
+
+    function saveMenu() {
+        try { localStorage.setItem('hotpotMenuData', JSON.stringify(menuData)); }
+        catch (e) { console.warn('Failed to save menu:', e); }
+    }
+
+    function loadState() {
+        try {
+            const saved = localStorage.getItem('hotpotOrderState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const today = new Date().toDateString();
+                const lastOrderDate = parsed.lastOrderDate || '';
+                if (lastOrderDate !== today) {
+                    state.orderNumber = 0;
+                    state.lastOrderDate = today;
+                    state.currentOrderNumber = null;
+                } else {
+                    state.orderNumber = parsed.orderNumber || 0;
+                    state.lastOrderDate = parsed.lastOrderDate || today;
+                    state.currentOrderNumber = parsed.currentOrderNumber || null;
+                }
+                state.orderHistory = parsed.orderHistory || [];
+            } else {
+                state.orderNumber = 0;
+                state.lastOrderDate = new Date().toDateString();
+                state.orderHistory = [];
+                state.currentOrderNumber = null;
+            }
+        } catch (e) {
+            console.warn('Failed to load state:', e);
+            state.orderNumber = 0;
+            state.lastOrderDate = new Date().toDateString();
+            state.orderHistory = [];
+            state.currentOrderNumber = null;
+        }
+    }
+
+    function saveState() {
+        try {
+            localStorage.setItem('hotpotOrderState', JSON.stringify({
+                orderNumber: state.orderNumber,
+                currentOrderNumber: state.currentOrderNumber,
+                orderHistory: state.orderHistory,
+                lastOrderDate: state.lastOrderDate || new Date().toDateString()
+            }));
+        } catch (e) { console.warn('Failed to save state:', e); }
+    }
+
+    // ============================================
+    // RENDER FUNCTIONS
+    // ============================================
+
+    function renderMenu() {
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = '';
+
+        if (menuData.items.length === 0) {
+            container.innerHTML = `<div class="option-group"><div class="empty-state"><div class="empty-icon">📭</div><p>ម៉ឺនុយទទេ</p><p style="font-size:13px;color:#999;">សូមត្រឡប់មកមើលក្រោយ</p></div></div>`;
+            return;
+        }
+
+        menuData.categories.forEach(category => {
+            const itemsInCategory = menuData.items.filter(item => item.category === category);
+            if (itemsInCategory.length === 0) return;
+
+            const group = document.createElement('div');
+            group.className = 'option-group';
+            group.innerHTML = `
+                <h3>${category}<span class="count">${itemsInCategory.length}</span>
+                <span class="admin-actions"><button class="btn-add-cat" onclick="window.deleteCategory('${category}')" style="background:var(--primary);">🗑️</button></span></h3>
+                <div class="menu-grid" data-category="${category}">
+                    ${itemsInCategory.map(item => `
+                        <div class="menu-item" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}" data-category="${item.category}">
+                            <span class="item-emoji">${item.emoji || '🍽️'}</span>
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">៛${item.price.toLocaleString()}</div>
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="window.adjustQty(this, -1)">−</button>
+                                <span class="qty-value">1</span>
+                                <button class="qty-btn" onclick="window.adjustQty(this, 1)">+</button>
+                            </div>
+                            <span class="qty-badge">1</span>
+                            <div class="admin-item-controls">
+                                <button class="btn-edit-item" onclick="window.editItem('${item.id}')">✏️</button>
+                                <button class="btn-delete-item" onclick="window.deleteItem('${item.id}')">✕</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(group);
+        });
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-item-controls') || e.target.closest('.qty-btn')) return;
+                if (state.mode === 'admin') return;
+                toggleItem(this);
+            });
+        });
+
+        updateCategorySelects();
+        renderCategoryTags();
+    }
+
+    function renderCategoryTags() {
+        const container = document.getElementById('categoryTags');
+        if (menuData.categories.length === 0) {
+            container.innerHTML = '<span style="color:#999;font-size:14px;">មិនទាន់មានប្រភេទទេ។ បន្ថែមខាងក្រោម។</span>';
+            return;
+        }
+        container.innerHTML = menuData.categories.map(cat => `
+            <span class="category-tag">${cat}<span class="remove-cat" onclick="window.deleteCategory('${cat}')">✕</span></span>
+        `).join('');
+    }
+
+    function updateCategorySelects() {
+        const selects = ['adminCategorySelect', 'editItemCategory'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">ជ្រើសរើសប្រភេទ</option>';
+            menuData.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+            if (currentVal && menuData.categories.includes(currentVal)) {
+                select.value = currentVal;
+            }
+        });
+    }
+
+    // ============================================
+    // ORDER FUNCTIONS - FIXED!
+    // ============================================
+
+async function generateOrderNumber() {
+    // Generate timestamp-based order number
+    const now = new Date();
+    const year = String(now.getFullYear()).slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    // Format: YYMMDD-HHMMSS (e.g., 260723-162744)
+    const orderNumber = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+    
+    state.currentOrderNumber = orderNumber;
+    document.getElementById('orderNumber').textContent = orderNumber;
+    saveState();
+    
+    console.log(`📋 Order #${orderNumber}`);
+    return orderNumber;
+}
+
+    function toggleItem(element) {
+        if (state.mode === 'admin') return;
+        const id = element.dataset.id;
+        if (element.classList.contains('selected')) {
+            element.classList.remove('selected');
+            delete state.items[id];
+        } else {
+            element.classList.add('selected');
+            state.items[id] = {
+                name: element.dataset.name,
+                price: parseFloat(element.dataset.price),
+                category: element.dataset.category,
+                qty: 1
+            };
+            updateQtyDisplay(element, 1);
+        }
+        updateSummary();
+        saveState();
+    }
+
+    function adjustQty(btn, delta) {
+        if (state.mode === 'admin') return;
+        const item = btn.closest('.menu-item');
+        const id = item.dataset.id;
+        if (!state.items[id]) return;
+
+        let newQty = state.items[id].qty + delta;
+        if (newQty < 1) {
+            item.classList.remove('selected');
+            delete state.items[id];
+            updateSummary();
+            saveState();
+            return;
+        }
+        state.items[id].qty = newQty;
+        updateQtyDisplay(item, newQty);
+        updateSummary();
+        saveState();
+    }
+    window.adjustQty = adjustQty;
+
+    function updateQtyDisplay(item, qty) {
+        const badge = item.querySelector('.qty-badge');
+        const value = item.querySelector('.qty-value');
+        if (badge) badge.textContent = qty;
+        if (value) value.textContent = qty;
+    }
+
+    function updateSummary() {
+        const summaryGroup = document.getElementById('summaryGroup');
+        const summaryDiv = document.getElementById('orderSummary');
+        const totalSpan = document.getElementById('totalPrice');
+        const itemCountSpan = document.getElementById('itemCount');
+
+        const items = Object.values(state.items);
+        if (items.length === 0) {
+            summaryGroup.style.display = 'none';
+            return;
+        }
+
+        summaryGroup.style.display = 'block';
+        let html = '';
+        let total = 0;
+        let totalItems = 0;
+
+        items.forEach(item => {
+            const subtotal = item.price * item.qty;
+            total += subtotal;
+            totalItems += item.qty;
+            html += `
+                <div class="summary-item">
+                    <div class="item-info">
+                        <span class="item-qty">${item.qty}×</span>
+                        <span>${item.name}</span>
+                    </div>
+                    <div>
+                        <span>៛${subtotal.toLocaleString()}</span>
+                        <button class="remove-btn" onclick="window.removeItem('${Object.keys(state.items).find(key => state.items[key] === item)}')">✕</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        summaryDiv.innerHTML = html;
+        totalSpan.textContent = total.toLocaleString();
+        itemCountSpan.textContent = totalItems;
+    }
+
+    function removeItem(id) {
+        if (!confirm(`លុប "${state.items[id].name}" ចេញពីការបញ្ជាទិញ?`)) return;
+        const menuItem = document.querySelector(`.menu-item[data-id="${id}"]`);
+        if (menuItem) menuItem.classList.remove('selected');
+        delete state.items[id];
+        updateSummary();
+        saveState();
+        showStatus('បានលុបមុខម្ហូប', 'info');
+    }
+    window.removeItem = removeItem;
+
+    function getOrderTypeFromGlobal() {
+        const orderType = document.documentElement.dataset.orderType;
+        if (orderType) {
+            state.orderType = orderType;
+            console.log('📦 Order type loaded from global:', state.orderType);
+        } else {
+            console.warn('⚠️ No order type found, using default: Here');
+            state.orderType = 'Here';
+        }
+        const customerName = document.documentElement.dataset.customerName;
+        state.customerName = customerName || '';
+        return state.orderType;
+    }
+
+    // ============================================
+    // PLACE ORDER
+    // ============================================
+
+    document.getElementById('placeOrderBtn').addEventListener('click', async function() {
+        const orderType = document.documentElement.dataset.orderType || 'Here';
+        state.orderType = orderType;
+        state.customerName = document.documentElement.dataset.customerName || '';
+
+        if (state.mode === 'admin') {
+            showStatus('សូមប្តូរទៅរបៀបអតិថិជនដើម្បីដាក់ការបញ្ជាទិញ', 'error');
+            return;
+        }
+
+        const items = Object.values(state.items);
+        if (items.length === 0) {
+            showStatus('សូមជ្រើសរើសមុខម្ហូបយ៉ាងតិច ១ មុខ!', 'error');
+            return;
+        }
+
+        this.disabled = true;
+        this.textContent = '⏳ កំពុងដំណើរការ...';
+
+        const orderNumber = await generateOrderNumber();
+        const orderTypeDisplay = state.orderType === 'Here' ? 'ញុាំទីនេះ' : 'ច្រកទៅផ្ទះ';
+        
+        const order = {
+            number: orderNumber,
+            type: orderTypeDisplay,
+            customerName: state.customerName,
+            items: items.map(item => ({ name: item.name, price: item.price, qty: item.qty })),
+            total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
+            instructions: document.getElementById('instructions').value,
+            timestamp: new Date().toISOString(),
+            status: 'pending'
+        };
+
+        state.orderHistory.push(order);
+        state.currentOrder = order;
+        saveState();
+
+        showStatus(`✅ បញ្ជាទិញ #${orderNumber} បានដាក់ដោយជោគជ័យ!`, 'success');
+        
+        setTimeout(() => {
+            window.showReceipt(order, true);
+        }, 500);
+
+        setTimeout(() => {
+            resetOrder();
+            this.disabled = false;
+            this.textContent = '📤 ដាក់ការបញ្ជាទិញ';
+        }, 1000);
+    });
+
+    async function resetOrder() {
+        document.querySelectorAll('.menu-item.selected').forEach(item => item.classList.remove('selected'));
+        state.items = {};
+        document.getElementById('instructions').value = '';
+        updateSummary();
+        state.currentOrderNumber = null;
+        await generateOrderNumber();
+        saveState();
+    }
+
+    function showStatus(message, type) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = message;
+        statusDiv.className = `status ${type}`;
+        statusDiv.style.display = 'block';
+        clearTimeout(window.statusTimeout);
+        window.statusTimeout = setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 4000);
+    }
+
+    // ============================================
+    // ADMIN FUNCTIONS
+    // ============================================
+
+    window.setMode = function(mode) {
+        state.mode = mode;
+        const container = document.getElementById('appContainer');
+        const adminBanner = document.getElementById('adminBanner');
+        const customerBtn = document.getElementById('customerMode');
+        const adminBtn = document.getElementById('adminMode');
+
+        if (mode === 'admin') {
+            container.classList.add('admin-mode');
+            adminBanner.classList.add('active');
+            customerBtn.classList.remove('active');
+            adminBtn.classList.add('active');
+            document.getElementById('adminAddSection').style.display = 'block';
+            document.getElementById('categoryManagement').style.display = 'block';
+            renderCategoryTags();
+            renderMenu();
+        } else {
+            container.classList.remove('admin-mode');
+            adminBanner.classList.remove('active');
+            customerBtn.classList.add('active');
+            adminBtn.classList.remove('active');
+            document.getElementById('adminAddSection').style.display = 'none';
+            document.getElementById('categoryManagement').style.display = 'none';
+            renderMenu();
+        }
+    };
+
+    window.addCategory = function() {
+        const input = document.getElementById('newCategoryName');
+        const name = input.value.trim();
+        if (!name) { showStatus('សូមបញ្ចូលឈ្មោះប្រភេទ', 'error'); return; }
+        if (menuData.categories.includes(name)) { showStatus('ប្រភេទនេះមានរួចហើយ', 'error'); return; }
+        menuData.categories.push(name);
+        saveMenu();
+        renderCategoryTags();
+        updateCategorySelects();
+        renderMenu();
+        input.value = '';
+        showStatus(`✅ បានបន្ថែមប្រភេទ "${name}"`, 'success');
+    };
+
+    window.deleteCategory = function(category) {
+        const itemCount = menuData.items.filter(i => i.category === category).length;
+        if (itemCount > 0) {
+            if (!confirm(`ប្រភេទ "${category}" មាន ${itemCount} មុខម្ហូប។ ចង់លុបប្រភេទ និងមុខម្ហូបទាំងអស់?`)) return;
+            menuData.items = menuData.items.filter(i => i.category !== category);
+        } else {
+            if (!confirm(`លុបប្រភេទ "${category}"?`)) return;
+        }
+        menuData.categories = menuData.categories.filter(c => c !== category);
+        saveMenu();
+        renderCategoryTags();
+        updateCategorySelects();
+        renderMenu();
+        showStatus(`🗑️ បានលុបប្រភេទ "${category}"`, 'info');
+    };
+
+    window.addMenuItem = function() {
+        const category = document.getElementById('adminCategorySelect').value;
+        const name = document.getElementById('adminItemName').value.trim();
+        const price = parseFloat(document.getElementById('adminItemPrice').value);
+        const emoji = document.getElementById('adminItemEmoji').value.trim() || '🍽️';
+        if (!category) { showStatus('សូមជ្រើសរើសប្រភេទ', 'error'); return; }
+        if (!name) { showStatus('សូមបញ្ចូលឈ្មោះម្ហូប', 'error'); return; }
+        if (isNaN(price) || price <= 0) { showStatus('សូមបញ្ចូលតម្លៃត្រឹមត្រូវ', 'error'); return; }
+        const id = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
+        menuData.items.push({ id, name, price, category, emoji });
+        saveMenu();
+        renderMenu();
+        document.getElementById('adminItemName').value = '';
+        document.getElementById('adminItemPrice').value = '';
+        document.getElementById('adminItemEmoji').value = '🍽️';
+        showStatus(`✅ បានបន្ថែម "${name}" ទៅ ${category}`, 'success');
+    };
+
+    window.deleteItem = function(id) {
+        const item = menuData.items.find(i => i.id === id);
+        if (!item) return;
+        if (!confirm(`លុប "${item.name}" ចេញពីម៉ឺនុយ?`)) return;
+        menuData.items = menuData.items.filter(i => i.id !== id);
+        if (state.items[id]) delete state.items[id];
+        saveMenu();
+        renderMenu();
+        updateSummary();
+        showStatus(`🗑️ បានលុប "${item.name}"`, 'info');
+    };
+
+    window.editItem = function(id) {
+        const item = menuData.items.find(i => i.id === id);
+        if (!item) return;
+        state.editingItemId = id;
+        document.getElementById('editItemName').value = item.name;
+        document.getElementById('editItemPrice').value = item.price;
+        document.getElementById('editItemEmoji').value = item.emoji || '🍽️';
+        const select = document.getElementById('editItemCategory');
+        select.innerHTML = '<option value="">ជ្រើសរើសប្រភេទ</option>';
+        menuData.categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (cat === item.category) option.selected = true;
+            select.appendChild(option);
+        });
+        document.getElementById('editModal').classList.add('active');
+    };
+
+    window.saveEditItem = function() {
+        const id = state.editingItemId;
+        const item = menuData.items.find(i => i.id === id);
+        if (!item) return;
+        const name = document.getElementById('editItemName').value.trim();
+        const price = parseFloat(document.getElementById('editItemPrice').value);
+        const category = document.getElementById('editItemCategory').value;
+        const emoji = document.getElementById('editItemEmoji').value.trim() || '🍽️';
+        if (!name) { showStatus('សូមបញ្ចូលឈ្មោះម្ហូប', 'error'); return; }
+        if (isNaN(price) || price <= 0) { showStatus('សូមបញ្ចូលតម្លៃត្រឹមត្រូវ', 'error'); return; }
+        if (!category) { showStatus('សូមជ្រើសរើសប្រភេទ', 'error'); return; }
+        item.name = name;
+        item.price = price;
+        item.category = category;
+        item.emoji = emoji;
+        saveMenu();
+        renderMenu();
+        updateSummary();
+        closeModal('editModal');
+        showStatus(`✅ បានកែប្រែ "${name}"`, 'success');
+    };
+
+    window.resetMenu = function() {
+        if (!confirm('កំណត់ម៉ឺនុយឡើងវិញទៅជាលំនាំដើម? វានឹងលុបមុខម្ហូប និងប្រភេទដែលបានបន្ថែមទាំងអស់។')) return;
+        menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
+        saveMenu();
+        renderCategoryTags();
+        updateCategorySelects();
+        renderMenu();
+        showStatus('🔄 បានកំណត់ម៉ឺនុយឡើងវិញ', 'info');
+    };
+
+    // ============================================
+    // RECEIPT & HISTORY
+    // ============================================
+
+    window.showReceipt = function(order, requireConfirmation) {
+        const modal = document.getElementById('receiptModal');
+        const content = document.getElementById('receiptContent');
+        const orderToShow = order || state.currentOrder;
+        if (!orderToShow) {
+            showStatus('មិនមានការបញ្ជាទិញដើម្បីបង្ហាញបង្កាន់ដៃ', 'error');
+            return;
+        }
+        // Track whether this receipt still needs to be sent to the kitchen.
+        // Only fresh orders (placed just now) require this; viewing an old
+        // receipt from history should not trigger the warning.
+        state.receiptPending = !!requireConfirmation;
+        const date = new Date(orderToShow.timestamp);
+        const itemsHtml = orderToShow.items.map(item => `
+            <div class="receipt-item"><span>${item.qty}× ${item.name}</span><span>៛${(item.price * item.qty).toLocaleString()}</span></div>
+        `).join('');
+        content.innerHTML = `
+            <div class="receipt" id="printableReceipt">
+                <div class="receipt-header">
+                    <h2>🍲 ហតផត & អាហារសម្រន់</h2>
+                    <div style="font-size:14px;color:#666;">លេខបញ្ជាទិញ #${orderToShow.number}</div>
+                    <div style="font-size:12px;color:#999;">${date.toLocaleString('km-KH')}</div>
+                    ${orderToShow.customerName ? `<div style="font-size:14px;font-weight:700;margin-top:4px;">👤 ${orderToShow.customerName}</div>` : ''}
+                    <div style="font-size:14px;font-weight:600;margin-top:4px;">${orderToShow.type}</div>
+                </div>
+                ${itemsHtml}
+                <div class="receipt-total"><span>សរុប</span><span>៛${orderToShow.total.toLocaleString()}</span></div>
+                ${orderToShow.instructions ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:12px;color:#666;">📝 កំណត់ចំណាំ: ${orderToShow.instructions}</div>` : ''}
+                <div class="receipt-footer">✅ ចុច "យល់ព្រម" ដើម្បីផ្ញើទៅផ្ទះបាយ<br>🖨️ ឬចុច "បោះពុម្ព" ដើម្បីបោះពុម្ពបង្កាន់ដៃ</div>
+            </div>
+        `;
+        modal.classList.add('active');
+    };
+
+    window.printReceipt = function() {
+        const content = document.getElementById('printableReceipt');
+        if (!content) { showStatus('មិនមានបង្កាន់ដៃដើម្បីបោះពុម្ព', 'error'); return; }
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        printWindow.document.write(`
+            <html><head><title>បង្កាន់ដៃ #${state.currentOrder?.number || '0000'}</title>
+            <style>body{font-family:'Khmer OS','Courier New',monospace;padding:20px;}.receipt{max-width:300px;margin:0 auto;}
+            .receipt-header{text-align:center;border-bottom:2px dashed #333;padding-bottom:12px;margin-bottom:12px;}
+            .receipt-item{display:flex;justify-content:space-between;padding:4px 0;}
+            .receipt-total{border-top:2px dashed #333;padding-top:10px;margin-top:10px;display:flex;justify-content:space-between;font-weight:700;font-size:16px;}
+            .receipt-footer{text-align:center;margin-top:12px;padding-top:12px;border-top:2px dashed #333;font-size:12px;color:#666;}
+            @media print{body{padding:0;}}</style></head>
+            <body>${content.outerHTML}<script>window.onload=function(){window.print();setTimeout(()=>window.close(),1000);};<\/script></body></html>
+        `);
+        printWindow.document.close();
+    };
+
+    window.showHistory = function() {
+        const modal = document.getElementById('historyModal');
+        const list = document.getElementById('historyList');
+        if (state.orderHistory.length === 0) {
+            list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>មិនទាន់មានការបញ្ជាទិញទេ</p><p style="font-size:13px;color:#999;">ដាក់ការបញ្ជាទិញដំបូងដើម្បីមើលនៅទីនេះ</p></div>`;
+        } else {
+            list.innerHTML = state.orderHistory.slice().reverse().map(order => `
+                <div class="history-item" onclick="window.showReceiptFromHistory('${order.number}')">
+                    <div><span class="h-order">#${order.number}</span><span class="h-total">៛${order.total.toLocaleString()}</span></div>
+                    <div><span class="h-time">${new Date(order.timestamp).toLocaleString('km-KH')}</span><span style="margin-left:8px;font-size:12px;color:#666;">${order.type}</span><span style="margin-left:8px;font-size:12px;color:#666;">${order.items.length} មុខ</span></div>
+                </div>
+            `).join('');
+        }
+        modal.classList.add('active');
+    };
+
+    window.showReceiptFromHistory = function(orderNumber) {
+        const order = state.orderHistory.find(o => o.number === orderNumber);
+        if (order) {
+            state.currentOrder = order;
+            closeModal('historyModal');
+            setTimeout(() => window.showReceipt(order), 300);
+        }
+    };
+
+    window.clearHistory = function() {
+        if (confirm('លុបប្រវត្តិការបញ្ជាទិញទាំងអស់?')) {
+            state.orderHistory = [];
+            saveState();
+            window.showHistory();
+            showStatus('បានលុបប្រវត្តិ', 'info');
+        }
+    };
+
+    window.clearAll = function() {
+        if (confirm('លុបការជ្រើសរើសទាំងអស់?')) {
+            resetOrder();
+            showStatus('បានលុបការជ្រើសរើសទាំងអស់', 'info');
+        }
+    };
+
+    let tyAutoCloseTimer = null;
+
+    window.showThankYou = function(order, method) {
+        const subtitleEl = document.getElementById('tySubtitle');
+        subtitleEl.textContent = method === 'manual'
+            ? '📤 សូមចុច "Send" ក្នុង Telegram ដើម្បីបញ្ជូនការបញ្ជាទិញ'
+            : 'ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើដោយជោគជ័យ';
+        document.getElementById('tyOrderNumber').textContent = '#' + order.number;
+        document.getElementById('tyOrderTotal').textContent = '៛' + order.total.toLocaleString();
+        document.getElementById('thankYouModal').classList.add('active');
+        clearTimeout(tyAutoCloseTimer);
+        tyAutoCloseTimer = setTimeout(() => { window.closeThankYou(); }, 4000);
+    };
+
+    window.closeThankYou = function() {
+        clearTimeout(tyAutoCloseTimer);
+        document.getElementById('thankYouModal').classList.remove('active');
+        window.resetToOrderType();
+    };
+
+    window.showOrderFailed = function() {
+        document.getElementById('orderFailedModal').classList.add('active');
+    };
+
+    window.resumeReceipt = function() {
+        document.getElementById('orderFailedModal').classList.remove('active');
+        document.getElementById('receiptModal').classList.add('active');
+    };
+
+    window.discardOrder = function() {
+        document.getElementById('orderFailedModal').classList.remove('active');
+        document.getElementById('receiptModal').classList.remove('active');
+        state.receiptPending = false;
+        if (state.currentOrder) {
+            state.orderHistory = state.orderHistory.filter(o => o.number !== state.currentOrder.number);
+            state.currentOrder = null;
+            saveState();
+        }
+        showStatus('បានបោះបង់ការបញ្ជាទិញនេះ', 'info');
+        window.resetToOrderType();
+    };
+
+    window.closeModal = function(id) {
+        if (id === 'receiptModal' && state.receiptPending) {
+            document.getElementById('receiptModal').classList.remove('active');
+            window.showOrderFailed();
+            return;
+        }
+        if (id === 'thankYouModal') { window.closeThankYou(); return; }
+        if (id === 'orderFailedModal') { window.resumeReceipt(); return; }
+        document.getElementById(id).classList.remove('active');
+    };
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) window.closeModal(this.id);
+        });
+    });
+
+    // ============================================
+    // ADMIN PASSWORD
+    // ============================================
+
+    const ADMIN_PASSWORD = '1369';
+    let adminTriggerCount = 0;
+    let adminTriggerTimer = null;
+
+    window.triggerAdminLogin = function() {
+        adminTriggerCount++;
+        clearTimeout(adminTriggerTimer);
+        adminTriggerTimer = setTimeout(() => { adminTriggerCount = 0; }, 3000);
+        if (adminTriggerCount >= 3) {
+            adminTriggerCount = 0;
+            const password = prompt('🔐 បញ្ចូលពាក្យសម្ងាត់អ្នកគ្រប់គ្រង:');
+            if (password === ADMIN_PASSWORD) {
+                const adminToggle = document.getElementById('adminToggle');
+                if (adminToggle.style.display === 'none') {
+                    adminToggle.style.display = 'flex';
+                    showStatus('🔧 របៀបអ្នកគ្រប់គ្រង បានបើក!', 'success');
+                } else {
+                    adminToggle.style.display = 'none';
+                    if (state.mode === 'admin') window.setMode('customer');
+                    showStatus('👤 បានបិទរបៀបអ្នកគ្រប់គ្រង', 'info');
+                }
+            } else if (password !== null && password !== '') {
+                showStatus('❌ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ!', 'error');
+            }
+        }
+    };
+
+    // ============================================
+    // TELEGRAM BOT
+    // ============================================
+
+        // ✅ ADD THIS - Placeholders that get replaced during build:
+        const BOT_TOKEN = 'BOT_TOKEN_PLACEHOLDER';
+        const CHAT_ID = 'CHAT_ID_PLACEHOLDER';
+
+window.confirmOrder = async function() {
+    const order = state.currentOrder;
+    if (!order) { showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error'); return; }
+
+    const confirmBtn = document.getElementById('confirmOrderBtn');
+    if (confirmBtn) { confirmBtn.textContent = '⏳ កំពុងផ្ញើ...'; confirmBtn.disabled = true; }
+
+    const now = new Date();
+    const timeStr = now.toLocaleString('km-KH');
+    const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
+    
+    // 🔥 Using HTML formatting with parse_mode: 'HTML'
+    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
+
+    await sendToTelegram(message, confirmBtn);
+};
+
+function sendToTelegram(message, confirmBtn) {
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            chat_id: CHAT_ID, 
+            text: message, 
+            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) { handleTelegramSuccess(confirmBtn); }
+        else { sendViaProxy(message, confirmBtn); }
+    })
+    .catch(() => { sendViaProxy(message, confirmBtn); });
+}
+
+function sendViaProxy(message, confirmBtn) {
+    fetch(`https://cors-anywhere.herokuapp.com/https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Origin': 'https://chanreas09.github.io' },
+        body: JSON.stringify({ 
+            chat_id: CHAT_ID, 
+            text: message, 
+            parse_mode: 'HTML'  // 🔥 Changed from 'Markdown' to 'HTML'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) { handleTelegramSuccess(confirmBtn); }
+        else { manualTelegramSend(message, confirmBtn); }
+    })
+    .catch(() => { manualTelegramSend(message, confirmBtn); });
+}
+function manualTelegramSend(message, confirmBtn) {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
+    state.receiptPending = false;
+    document.getElementById('receiptModal').classList.remove('active');
+    if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
+    window.showThankYou(state.currentOrder, 'manual');
+}
+
+function handleTelegramSuccess(confirmBtn) {
+    state.receiptPending = false;
+    document.getElementById('receiptModal').classList.remove('active');
+    if (confirmBtn) { confirmBtn.textContent = '✅ យល់ព្រម'; confirmBtn.disabled = false; }
+    window.showThankYou(state.currentOrder, 'auto');
+}
+    // ============================================
+    // KEYBOARD SHORTCUTS
+    // ============================================
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.active').forEach(el => window.closeModal(el.id));
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            document.getElementById('placeOrderBtn').click();
+        }
+    });
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+
+    loadMenu();
+    loadState();
+
+    (async function init() {
+        try {
+            await generateOrderNumber();
+        } catch (error) {
+            console.warn('⚠️ Using fallback number');
+            const now = new Date();
+            const time = String(now.getHours()).padStart(2, '0') + 
+                         String(now.getMinutes()).padStart(2, '0') +
+                         String(now.getSeconds()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            const fallback = `${time}-${random}`;
+            document.getElementById('orderNumber').textContent = fallback;
+        }
+        getOrderTypeFromGlobal();
+    })();
+
+    renderMenu();
+    window.setMode('customer');
+
+    console.log('🍲 ប្រព័ន្ធបញ្ជាទិញហតផត');
+    console.log('📊 ម៉ឺនុយ:', menuData.items.length, 'មុខ');
+    console.log('📂 ប្រភេទ:', menuData.categories.join(', '));
+    console.log('📦 ការបញ្ជាទិញ:', state.orderHistory.length);
+</script>
+</body>
+</html>
