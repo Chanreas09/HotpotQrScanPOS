@@ -1,2 +1,0 @@
-# HotpotQrScanPOS
-ScanToOrder
