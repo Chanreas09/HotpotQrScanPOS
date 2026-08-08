@@ -1455,127 +1455,97 @@ async function generateOrderNumber() {
         }
     };
 
-    // ============================================
-    // TELEGRAM BOT - WITH CORS PROXY SUPPORT
-    // ============================================
+// ============================================
+// TELEGRAM BOT - Using Vercel Serverless Function
+// ============================================
 
-    // 🔒 These placeholders are replaced during deployment with GitHub Secrets
-    const BOT_TOKEN = '8763695785:AAGm1ADQ0h0ZgLO0yNp5gSqG6xLYS0PuCeQ';
-    const CHAT_ID = '-1004412094151';
+// 🔒 These placeholders are NOT used in Vercel mode
+// (The serverless function uses environment variables instead)
+// But keep them for GitHub Pages fallback if needed
+const BOT_TOKEN = 'BOT_TOKEN_PLACEHOLDER';
+const CHAT_ID = 'CHAT_ID_PLACEHOLDER';
 
-    window.confirmOrder = async function() {
-        const order = state.currentOrder;
-        if (!order) { showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error'); return; }
+window.confirmOrder = async function() {
+    const order = state.currentOrder;
+    if (!order) { showStatus('មិនមានការបញ្ជាទិញដើម្បីផ្ញើ', 'error'); return; }
 
-        const confirmBtn = document.getElementById('confirmOrderBtn');
-        if (confirmBtn) { confirmBtn.textContent = '⏳ កំពុងផ្ញើ...'; confirmBtn.disabled = true; }
+    const confirmBtn = document.getElementById('confirmOrderBtn');
+    if (confirmBtn) { confirmBtn.textContent = '⏳ កំពុងផ្ញើ...'; confirmBtn.disabled = true; }
 
-        const now = new Date();
-        const timeStr = now.toLocaleString('km-KH');
-        const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
+    const now = new Date();
+    const timeStr = now.toLocaleString('km-KH');
+    const orderItems = order.items.map(item => `• ${item.qty}× ${item.name} = ៛${(item.price * item.qty).toLocaleString()}`).join('\n');
+    
+    const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
+
+    await sendToTelegram(message, confirmBtn);
+};
+
+// ============================================
+// SEND TO TELEGRAM VIA VERCEL SERVERLESS FUNCTION
+// ============================================
+
+async function sendToTelegram(message, confirmBtn) {
+    console.log('📤 Sending to Telegram via Vercel serverless function...');
+    
+    try {
+        const response = await fetch('/api/send-telegram', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message })
+        });
         
-        const message = `<b>🍲 ការបញ្ជាទិញថ្មី!</b>\n\n${order.customerName ? `👤 <b>អតិថិជន:</b> ${order.customerName}\n` : ''}📦 <b>ប្រភេទ:</b> ${order.type}\n🕐 <b>ម៉ោង:</b> ${timeStr}\n\n📝 <b>មុខម្ហូប:</b>\n${orderItems}\n\n💰 <b>សរុប:</b> ៛${order.total.toLocaleString()}${order.instructions ? `\n\n📌 <b>កំណត់ចំណាំ:</b> ${order.instructions}` : ''}\n\n👨‍🍳 <b>សូមរៀបចំម្ហូប!</b>`;
-
-        await sendToTelegram(message, confirmBtn);
-    };
-
-    // ============================================
-    // CORS PROXY FUNCTION - TRY MULTIPLE PROXIES
-    // ============================================
-
-    function sendToTelegram(message, confirmBtn) {
-        console.log('📤 Attempting to send to Telegram...');
+        const data = await response.json();
+        console.log('📥 Response from server:', data);
         
-        // List of CORS proxies to try
-        const proxies = [
-            'https://corsproxy.io/?',                    // Proxy 1
-            'https://api.allorigins.win/raw?url=',      // Proxy 2
-            'https://cors-anywhere.herokuapp.com/'      // Proxy 3
-        ];
-        
-        const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        let currentProxyIndex = 0;
-        let attempts = 0;
-        const MAX_ATTEMPTS = proxies.length;
-        
-        function tryNextProxy() {
-            if (attempts >= MAX_ATTEMPTS) {
-                console.log('❌ All proxies failed. Falling back to manual send...');
-                manualTelegramSend(message, confirmBtn);
-                return;
-            }
-            
-            const proxy = proxies[currentProxyIndex];
-            const url = proxy + encodeURIComponent(telegramUrl);
-            attempts++;
-            
-            console.log(`🔄 Trying proxy ${attempts}/${MAX_ATTEMPTS}: ${proxy}`);
-            
-            fetch(url, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    chat_id: CHAT_ID, 
-                    text: message, 
-                    parse_mode: 'HTML'
-                })
-            })
-            .then(response => {
-                console.log(`📥 Response status from proxy ${attempts}:`, response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log(`📦 Response data from proxy ${attempts}:`, data);
-                if (data.ok) {
-                    console.log('✅ Telegram message sent successfully!');
-                    handleTelegramSuccess(confirmBtn);
-                } else {
-                    console.warn(`⚠️ Proxy ${attempts} returned error:`, data.description);
-                    currentProxyIndex++;
-                    tryNextProxy();
-                }
-            })
-            .catch(error => {
-                console.warn(`❌ Proxy ${attempts} failed:`, error.message);
-                currentProxyIndex++;
-                tryNextProxy();
-            });
+        if (data.success || data.ok) {
+            console.log('✅ Telegram message sent successfully!');
+            handleTelegramSuccess(confirmBtn);
+        } else {
+            console.error('❌ Server returned error:', data.error);
+            // Fallback to manual if server fails
+            manualTelegramSend(message, confirmBtn);
         }
-        
-        // Start trying proxies
-        tryNextProxy();
+    } catch (error) {
+        console.error('❌ Network error:', error);
+        // Fallback to manual if network fails
+        manualTelegramSend(message, confirmBtn);
     }
+}
 
-    // ============================================
-    // MANUAL FALLBACK - Opens Telegram App
-    // ============================================
+// ============================================
+// MANUAL FALLBACK - Opens Telegram App
+// ============================================
 
-    function manualTelegramSend(message, confirmBtn) {
-        console.log('📱 Opening Telegram app for manual send...');
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
-        state.receiptPending = false;
-        document.getElementById('receiptModal').classList.remove('active');
-        if (confirmBtn) { 
-            confirmBtn.textContent = '✅ យល់ព្រម'; 
-            confirmBtn.disabled = false; 
-        }
-        window.showThankYou(state.currentOrder, 'manual');
+function manualTelegramSend(message, confirmBtn) {
+    console.log('📱 Opening Telegram app for manual send...');
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://t.me/share/url?url=&text=${encodedMessage}`, '_blank');
+    state.receiptPending = false;
+    document.getElementById('receiptModal').classList.remove('active');
+    if (confirmBtn) { 
+        confirmBtn.textContent = '✅ យល់ព្រម'; 
+        confirmBtn.disabled = false; 
     }
+    window.showThankYou(state.currentOrder, 'manual');
+}
 
-    function handleTelegramSuccess(confirmBtn) {
-        console.log('🎉 Order sent to Telegram successfully!');
-        state.receiptPending = false;
-        document.getElementById('receiptModal').classList.remove('active');
-        if (confirmBtn) { 
-            confirmBtn.textContent = '✅ យល់ព្រម'; 
-            confirmBtn.disabled = false; 
-        }
-        window.showThankYou(state.currentOrder, 'auto');
+// ============================================
+// SUCCESS HANDLER
+// ============================================
+
+function handleTelegramSuccess(confirmBtn) {
+    console.log('🎉 Order sent to Telegram successfully!');
+    state.receiptPending = false;
+    document.getElementById('receiptModal').classList.remove('active');
+    if (confirmBtn) { 
+        confirmBtn.textContent = '✅ យល់ព្រម'; 
+        confirmBtn.disabled = false; 
     }
-
+    window.showThankYou(state.currentOrder, 'auto');
+}
     // ============================================
     // KEYBOARD SHORTCUTS
     // ============================================
